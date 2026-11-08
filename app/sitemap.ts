@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [clubs, matchs, publications] = await Promise.all([getClubs(), getMatchs(), getPublications()]);
-  const pages = ["", "/matchs", "/classements", "/equipes", "/billetterie", "/medias", "/infos", "/inscription-club"];
+  const pages = ["", "/matchs", "/classements", "/equipes", "/billetterie", "/medias", "/infos", "/reglement", "/inscription-club"];
   return [
     ...pages.map((p) => ({ url: `${SITE}${p}`, changeFrequency: "daily" as const, priority: p ? 0.8 : 1 })),
     ...clubs.map((c) => ({ url: `${SITE}/equipes/${c.id}`, changeFrequency: "weekly" as const, priority: 0.6 })),

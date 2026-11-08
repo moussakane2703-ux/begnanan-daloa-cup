@@ -12,6 +12,7 @@ const LIENS = [
   ["/equipes", "Clubs"],
   ["/billetterie", "Billetterie"],
   ["/infos", "Infos"],
+  ["/reglement", "Règlement"],
 ] as const;
 
 const actif = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));

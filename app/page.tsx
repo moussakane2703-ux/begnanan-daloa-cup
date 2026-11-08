@@ -22,6 +22,7 @@ const RUBRIQUES = [
   ["/equipes", "Clubs", "Actualités, joueurs et matchs de chaque club"],
   ["/billetterie", "Billetterie", "Catégories, prix et réservation"],
   ["/infos", "Infos pratiques", "Lieu, itinéraire, horaires et alertes WhatsApp"],
+  ["/reglement", "Règlement intérieur", "Les 28 articles du tournoi et le PDF à télécharger"],
   ["/inscription-club", "Présidents de club", "Inscrire son club, ses joueurs et leurs licences"],
   ["/espace-club", "Espace club", "Le président gère son club, ses joueurs et écrit au comité"],
   ["/admin", "Espace pro", "Réservé à l'organisation : comité, billetterie et médias"],

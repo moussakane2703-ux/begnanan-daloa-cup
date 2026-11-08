@@ -759,3 +759,22 @@ a.partenaire:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .partenaire-nom{font-size:.78rem;font-weight:600;text-align:center;max-width:160px;line-height:1.2}
 .partenaire.principal .partenaire-nom{font-size:.95rem;max-width:280px}
 .pied-partenaires .partenaire-nom{font-size:.68rem;max-width:110px}
+
+/* Règlement intérieur */
+.reg-kpi{margin-bottom:18px}
+.reg-kpi .card p{margin:6px 0 0}
+.reg-list{display:grid;gap:10px}
+.chap{padding:0;overflow:hidden}
+.chap summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 18px;cursor:pointer;list-style:none}
+.chap summary::-webkit-details-marker{display:none}
+.chap summary::after{content:"+";margin-left:auto;font-size:1.4rem;line-height:1;color:var(--muted);font-weight:700}
+.chap[open] summary::after{content:"–"}
+.chap[open] summary{border-bottom:1px solid var(--line)}
+.chap-n{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--pitch);color:var(--on-pitch);padding:3px 10px;border-radius:99px}
+.arts{list-style:none;margin:0;padding:6px 18px 12px}
+.arts li{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.arts li:last-child{border-bottom:0}
+.arts p{margin:0;line-height:1.55}
+.art-n{font-family:var(--f-mono);font-weight:700;font-size:.82rem;color:var(--pitch);padding-top:2px}
+.reg-nb{margin-top:14px}
+@media (max-width:560px){.arts li{grid-template-columns:1fr;gap:2px}.reg-kpi .v{font-size:1.5rem;white-space:nowrap}}
