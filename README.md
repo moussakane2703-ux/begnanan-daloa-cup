@@ -15,7 +15,7 @@ Aucun mot de passe ni clé ne doit être envoyé par message : ils se saisissent
 ### 1. Base de données (Supabase, offre gratuite)
 
 1. Créer un compte sur [supabase.com](https://supabase.com) puis un projet (région la plus proche : Europe).
-2. Dans **SQL Editor**, coller tout le fichier [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql) et cliquer sur **Run**. Si la base a été créée avec une version précédente de ce fichier, exécuter aussi [`0002_correctif_security_definer.sql`](supabase/migrations/0002_correctif_security_definer.sql). Exécuter ensuite [`0003_clubs_licences.sql`](supabase/migrations/0003_clubs_licences.sql) (inscription des clubs et licences), puis [`0004_encadrement_mercato_alertes.sql`](supabase/migrations/0004_encadrement_mercato_alertes.sql) (coach et adjoint, mercato, annonces), puis [`0005_profil_photos_messages.sql`](supabase/migrations/0005_profil_photos_messages.sql) (espace club, photos, messages ; crée aussi l'espace de stockage « photos », gratuit jusqu'à 1 Go)., puis [`0006_naissance_facultative.sql`](supabase/migrations/0006_naissance_facultative.sql) (date de naissance des joueurs facultative).
+2. Dans **SQL Editor**, coller tout le fichier [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql) et cliquer sur **Run**. Si la base a été créée avec une version précédente de ce fichier, exécuter aussi [`0002_correctif_security_definer.sql`](supabase/migrations/0002_correctif_security_definer.sql). Exécuter ensuite [`0003_clubs_licences.sql`](supabase/migrations/0003_clubs_licences.sql) (inscription des clubs et licences), puis [`0004_encadrement_mercato_alertes.sql`](supabase/migrations/0004_encadrement_mercato_alertes.sql) (coach et adjoint, mercato, annonces), puis [`0005_profil_photos_messages.sql`](supabase/migrations/0005_profil_photos_messages.sql) (espace club, photos, messages ; crée aussi l'espace de stockage « photos », gratuit jusqu'à 1 Go)., puis [`0006_naissance_facultative.sql`](supabase/migrations/0006_naissance_facultative.sql) (date de naissance des joueurs facultative). Les fichiers suivants du dossier `supabase/migrations` s'exécutent ensuite dans l'ordre, jusqu'à [`0013_reservation_billets.sql`](supabase/migrations/0013_reservation_billets.sql) (réservation des billets en ligne, paiement sur place).
 3. Dans **Authentication → Users → Add user**, créer le premier compte administrateur (e-mail + mot de passe, cocher « Auto confirm »).
 4. Dans **SQL Editor**, donner le rôle administrateur à ce compte :
    ```sql
@@ -40,7 +40,7 @@ Aucun mot de passe ni clé ne doit être envoyé par message : ils se saisissent
 2. **Tournoi** : vérifier dates, lieu et accroche. Cocher « Dates confirmées » quand elles le sont.
 3. **Comptes** : créer les comptes du comité, de la billetterie et des médias. Le mot de passe provisoire se remet en main propre ; chacun le change depuis son tableau de bord.
 4. **Tirage et calendrier** : lancer le tirage au sort, corriger les poules si besoin, puis générer le calendrier des poules. **Clubs et matchs** : ajuster un match (date, heure, terrain, report, annulation). Pendant un match, mettre le statut « en cours » et le score ; à la fin, « terminé », puis cocher « Résultat validé » pour que le classement se mette à jour.
-5. **Billetterie** : créer les catégories (prix, places par match) et cocher « En vente ».
+5. **Billetterie** : créer les catégories (prix, places par match) et cocher « En vente ». Les supporters réservent alors sur `/billetterie` sans payer et reçoivent un billet avec QR code (`/billet/…`, à enregistrer en image ou à s'envoyer sur WhatsApp). Le jour du match, l'équipe ouvre **Billetterie → Scanner les billets** sur son téléphone : la caméra lit le QR code, l'écran indique le montant à encaisser, puis « Encaissé · faire entrer ». Un billet ne sert qu'une fois (une entrée par place réservée). Une réservation non payée garde ses places jusqu'au match et peut être annulée depuis le scanner.
 
 ## Développement
 
@@ -61,8 +61,7 @@ Sans réglage, chaque annonce a un bouton « Partager sur WhatsApp » (groupe, c
 
 ## Prochaines étapes
 
-- Paiement mobile money (Orange Money, MTN MoMo, Moov Money, Wave) via CinetPay et e-billet avec QR code : nécessite un compte marchand CinetPay au nom du comité.
-- Lecture du QR code à la caméra pour le contrôle à l'entrée.
+- Paiement en ligne par mobile money (Orange Money, MTN MoMo, Moov Money, Wave) via CinetPay, en plus du paiement sur place : nécessite un compte marchand CinetPay au nom du comité.
 - Envoi automatique des alertes WhatsApp (WhatsApp Business).
 - Envoi des photos directement depuis l'espace médias (aujourd'hui : lien vers l'image).
 

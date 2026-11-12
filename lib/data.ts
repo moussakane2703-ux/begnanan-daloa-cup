@@ -68,6 +68,10 @@ export const getPlacesRestantes = (matchId: string) =>
   );
 
 /** Dernières annonces du comité (incidents, reports, annulations…). */
+/** Places restantes de chaque match à venir, par catégorie en vente (formulaire de réservation). */
+export const getPlacesMatchs = () =>
+  lire<{ match_id: string; categorie_id: string; restantes: number }[]>((db) => db.rpc("places_matchs_a_venir"), []);
+
 export const getAlertes = (nombre = 10) =>
   lire<Alerte[]>((db) => db.from("alertes").select("*").order("publiee_le", { ascending: false }).limit(nombre), []);
 

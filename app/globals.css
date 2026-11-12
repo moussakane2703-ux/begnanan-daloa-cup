@@ -778,3 +778,74 @@ a.partenaire:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .art-n{font-family:var(--f-mono);font-weight:700;font-size:.82rem;color:var(--pitch);padding-top:2px}
 .reg-nb{margin-top:14px}
 @media (max-width:560px){.arts li{grid-template-columns:1fr;gap:2px}.reg-kpi .v{font-size:1.5rem;white-space:nowrap}}
+
+/* Billetterie : réservation en ligne, billet avec QR code, scanner à l'entrée */
+.resa-layout{display:grid;gap:16px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}
+@media (max-width:860px){.resa-layout{grid-template-columns:1fr}}
+.resa{display:grid;gap:14px}
+.resa-cats{border:0;padding:0;margin:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.resa-cats legend{font-size:.85rem;font-weight:600;margin-bottom:5px;padding:0}
+.resa-cat{display:grid;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--surface);position:relative}
+.resa-cat input{position:absolute;opacity:0;pointer-events:none}
+.resa-cat.on{border-color:var(--pitch);box-shadow:0 0 0 3px color-mix(in srgb,var(--pitch) 18%,transparent)}
+.resa-cat.complet{opacity:.5;cursor:not-allowed}
+.resa-cat:has(input:focus-visible){outline:3px solid var(--gold);outline-offset:2px}
+.resa-cat small{color:var(--muted);font-size:.78rem}
+.resa-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;border-radius:12px;background:var(--earth-soft)}
+.resa-total b{font-family:var(--f-display);font-size:1.8rem;font-weight:900}
+.mes-billets{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mes-billets a{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;text-decoration:none;color:inherit;padding:8px 10px;border-radius:10px;background:var(--surface-2)}
+
+.billet-page{max-width:460px;display:grid;gap:14px}
+.billet-ok{background:var(--ok-bg);color:var(--fg);border-radius:12px;padding:12px 14px}
+.billet{background:#fff;color:#16201a;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);border:1px solid #d9d5c8}
+.billet-tete{display:flex;gap:12px;align-items:center;background:#0e6a26;color:#f3f1ea;padding:12px 16px}
+.billet-tete div{display:grid;line-height:1.2}
+.billet-tete b{font-family:var(--f-display);text-transform:uppercase;font-size:1.25rem;letter-spacing:.02em}
+.billet-tete span{font-size:.8rem;opacity:.85}
+.billet-match{padding:16px 16px 0;text-align:center}
+.billet-match h1{font-size:1.6rem;font-weight:900}
+.billet-match p{color:#5c665e;font-size:.9rem;margin-top:6px}
+.billet-qr{width:min(260px,72%);margin:14px auto 0}
+.billet-qr svg{display:block;width:100%;height:auto}
+.billet-ref{text-align:center;font-size:1.35rem;font-weight:700;letter-spacing:.08em;margin-top:6px}
+.billet-infos{margin:14px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;border-top:1.5px dashed #d9d5c8;padding-top:14px}
+.billet-infos dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#5c665e}
+.billet-infos dd{margin:0;font-weight:600}
+.billet-statut{margin-top:14px;padding:10px 16px;text-align:center;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.88rem}
+.billet-statut.s-attente{background:#fbf1b8;color:#5a4700}
+.billet-statut.s-paye{background:#dff2e6;color:#14532d}
+.billet-statut.s-utilise,.billet-statut.s-annule{background:#ebe8df;color:#5c665e}
+.billet.annule .billet-qr{opacity:.15}
+.billet-actions{display:grid;gap:8px}
+.billet-actions .btn{justify-content:center}
+.billet-aide ol{margin:0;padding-left:18px;display:grid;gap:4px}
+
+.scan-page{display:grid;gap:12px;min-width:0}
+.scan-tete{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.scan{display:grid;gap:12px;max-width:520px}
+.scan-video{position:relative;aspect-ratio:3/4;max-height:62vh;border-radius:16px;overflow:hidden;background:#0a0d0a}
+.scan-video video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-video:not(.on) video{visibility:hidden}
+.scan-cadre{position:absolute;inset:18% 14%;border:3px solid var(--gold);border-radius:18px;box-shadow:0 0 0 999px rgb(0 0 0 / .35)}
+.scan-invite{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;padding:20px;text-align:center;color:#eef0e8}
+.scan-attente{font-weight:700;text-align:center}
+.scan-saisie{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+.scan-res{display:grid;gap:12px;border-radius:16px;padding:16px;border:2px solid}
+.scan-res.s-ok{background:var(--ok-bg);border-color:var(--ok)}
+.scan-res.s-payer{background:var(--warn-bg);border-color:var(--warn)}
+.scan-res.s-refus{background:var(--bad-bg);border-color:var(--bad)}
+.scan-verdict{font-family:var(--f-display);text-transform:uppercase;font-weight:900;font-size:clamp(1.7rem,7vw,2.3rem);line-height:1}
+.s-ok .scan-verdict{color:var(--ok)}.s-payer .scan-verdict{color:var(--warn)}.s-refus .scan-verdict{color:var(--bad)}
+.scan-msg{font-weight:700}
+.scan-msg.err{color:var(--bad)}
+.scan-infos{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:0}
+.scan-infos dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.scan-infos dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.scan-alerte{font-weight:700;color:var(--bad)}
+.scan-actions{display:grid;gap:10px}
+.scan-res .btn{justify-content:center}
+.scan-gros{min-height:56px;font-size:1.05rem}
+.scan-lien{justify-self:center}
+.scan-annuler{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--surface)}
+.form-del-btn{background:var(--bad);color:#fff}
