@@ -19,8 +19,10 @@ export default async function Billetterie() {
   const [categories, matchs, clubs, places] = await Promise.all([getCategories(), getMatchs(), getClubs(), getPlacesMatchs()]);
   const index = parId(clubs);
   const maintenant = Date.now();
+  // Seuls les matchs ouverts par le comité ont des places (places_matchs_a_venir).
+  const ouverts = new Set(places.map((p) => p.match_id));
   const aVenir = matchs.filter(
-    (m) => (m.statut === "programmé" || m.statut === "en cours") && new Date(m.date_heure).getTime() + APRES_COUP_ENVOI > maintenant,
+    (m) => ouverts.has(m.id) && (m.statut === "programmé" || m.statut === "en cours") && new Date(m.date_heure).getTime() + APRES_COUP_ENVOI > maintenant,
   );
   const restantes: Record<string, number> = {};
   for (const p of places) restantes[`${p.match_id}:${p.categorie_id}`] = p.restantes;

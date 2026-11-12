@@ -31,6 +31,20 @@ export async function supprimerCategorie(_: Etat, f: FormData): Promise<Etat> {
   return r.erreur ? { erreur: "Impossible : des billets ont été vendus. Retirez-la plutôt de la vente." } : r;
 }
 
+/** Matchs ouverts à la réservation : les cases cochées, les autres sont fermés. */
+export async function definirMatchsOuverts(_: Etat, f: FormData): Promise<Etat> {
+  await exigerAcces("billets");
+  const ids = f.getAll("match").map(String);
+  const db = await createClient();
+  const { data, error } = await db.rpc("definir_matchs_reservables", { p_ids: ids });
+  if (error) {
+    console.error(error);
+    return { erreur: "Enregistrement impossible. Réessayez." };
+  }
+  revalidatePath("/billetterie");
+  return { ok: `${data} match${data > 1 ? "s" : ""} ouvert${data > 1 ? "s" : ""} à la réservation.` };
+}
+
 export interface BilletControle {
   reference: string;
   statut: StatutCommande;

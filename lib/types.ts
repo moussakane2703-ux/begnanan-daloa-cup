@@ -51,6 +51,8 @@ export interface Match {
   chrono_ecoule?: number;
   tab_domicile?: number | null;
   tab_exterieur?: number | null;
+  /** Billetterie : le match est ouvert à la réservation en ligne. */
+  reservation_ouverte?: boolean;
 }
 
 export type Periode = "mt1" | "mt2" | "prol1" | "prol2" | "tab";

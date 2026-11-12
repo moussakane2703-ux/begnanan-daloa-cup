@@ -849,3 +849,6 @@ a.partenaire:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .scan-lien{justify-self:center}
 .scan-annuler{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--surface)}
 .form-del-btn{background:var(--bad);color:#fff}
+.matchs-ouverts{display:grid;gap:10px}
+.matchs-ouverts fieldset{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0;display:grid;gap:4px}
+.matchs-ouverts legend{font-weight:700;font-size:.85rem;padding:0 4px;text-transform:capitalize}
