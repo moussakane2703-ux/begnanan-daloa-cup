@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { CategorieBillet } from "@/lib/types";
 import Link from "next/link";
 import { libelleStatut, type StatutCommande } from "@/lib/billet";
-import { ajouterCategorie, modifierCategorie, supprimerCategorie } from "./actions";
+import { heure, jourCourt } from "@/lib/format";
+import { ajouterCategorie, definirMatchsOuverts, modifierCategorie, supprimerCategorie } from "./actions";
 
 function ChampsCategorie({ c }: { c?: CategorieBillet }) {
   return (
@@ -23,10 +24,18 @@ function ChampsCategorie({ c }: { c?: CategorieBillet }) {
 export default async function AdminBillets() {
   await exigerAcces("billets");
   const db = await createClient();
-  const [{ data: categories }, { data: commandes }] = await Promise.all([
+  const [{ data: categories }, { data: commandes }, { data: matchs }, { data: clubs }] = await Promise.all([
     db.from("categories_billet").select("*").order("ordre"),
     db.from("commandes").select("reference, nom_acheteur, telephone, quantite, total_fcfa, statut, entrees_validees, cree_le").order("cree_le", { ascending: false }).limit(100),
+    db.from("matchs").select("id, date_heure, club_domicile, club_exterieur, terrain, statut, reservation_ouverte").in("statut", ["programmé", "en cours"]).order("date_heure"),
+    db.from("clubs").select("id, nom"),
   ]);
+  const nomClub = new Map((clubs ?? []).map((c) => [c.id as string, c.nom as string]));
+  const parJour = new Map<string, NonNullable<typeof matchs>>();
+  for (const m of matchs ?? []) {
+    const j = jourCourt(m.date_heure);
+    parJour.set(j, [...(parJour.get(j) ?? []), m]);
+  }
   const liste = (commandes ?? []) as { reference: string; nom_acheteur: string; telephone: string; quantite: number; total_fcfa: number; statut: StatutCommande; entrees_validees: number }[];
   const actives = liste.filter((c) => c.statut === "en attente" || c.statut === "payée");
   const encaisse = liste.filter((c) => c.statut === "payée").reduce((t, c) => t + c.total_fcfa, 0);
@@ -39,6 +48,30 @@ export default async function AdminBillets() {
           Les supporters réservent sur le site et reçoivent un billet avec QR code. À l&apos;entrée, scannez le billet avec le téléphone, encaissez, puis faites entrer.
         </p>
         <Link className="btn gold" href="/admin/billets/scan">Scanner les billets</Link>
+      </div>
+
+      <div className="card">
+        <h3 style={{ marginBottom: 6 }}>Matchs ouverts à la réservation</h3>
+        <p className="small" style={{ marginBottom: 12 }}>
+          Seuls les matchs cochés apparaissent sur la page Billetterie. Chaque catégorie en vente y propose ses places par match.
+        </p>
+        {matchs?.length ? (
+          <Formulaire action={definirMatchsOuverts} className="matchs-ouverts">
+            {[...parJour].map(([jour, liste]) => (
+              <fieldset key={jour}>
+                <legend>{jour}</legend>
+                {liste.map((m) => (
+                  <label key={m.id} className="chk">
+                    <input type="checkbox" name="match" value={m.id} defaultChecked={m.reservation_ouverte} />{" "}
+                    {heure(m.date_heure)} · {nomClub.get(m.club_domicile) ?? "?"} – {nomClub.get(m.club_exterieur) ?? "?"}
+                  </label>
+                ))}
+              </fieldset>
+            ))}
+          </Formulaire>
+        ) : (
+          <p className="small">Aucun match à venir.</p>
+        )}
       </div>
 
       <div className="card">
