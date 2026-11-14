@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
-import { estJeton, libelleStatut, type StatutCommande } from "@/lib/billet";
+import { contenuQr, estJeton, libelleStatut, type StatutCommande } from "@/lib/billet";
 import { fcfa, heure, jourCourt } from "@/lib/format";
 import { adresseDuSite } from "@/lib/site";
 import { createPublicClient, supabaseConfigured } from "@/lib/supabase/server";
@@ -26,7 +26,7 @@ interface Billet {
   exterieur: string | null;
 }
 
-/** Billet du supporter : le lien (et son QR code) contient un jeton secret, impossible à deviner. */
+/** Billet du supporter : le lien contient un jeton secret, impossible à deviner ; le QR code porte ce jeton. */
 export default async function PageBillet({ params, searchParams }: {
   params: Promise<{ jeton: string }>;
   searchParams: Promise<{ nouveau?: string }>;
@@ -39,7 +39,8 @@ export default async function PageBillet({ params, searchParams }: {
   if (!b) notFound();
 
   const lien = `${await adresseDuSite()}/billet/${jeton.toLowerCase()}`;
-  const qr = await QRCode.toString(lien, { type: "svg", margin: 2, errorCorrectionLevel: "M", color: { dark: "#000000", light: "#ffffff" } });
+  // Le QR code ne contient pas le lien : seul le scanner de l'appareil autorisé sait le lire.
+  const qr = await QRCode.toString(contenuQr(jeton), { type: "svg", margin: 2, errorCorrectionLevel: "M", color: { dark: "#000000", light: "#ffffff" } });
   const match = `${b.domicile ?? "À désigner"} – ${b.exterieur ?? "À désigner"}`;
   const quand = `${jourCourt(b.date_heure)} à ${heure(b.date_heure)}`;
   const annule = b.statut === "annulée" || b.statut === "échouée";

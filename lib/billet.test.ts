@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { codeDuBillet, libelleStatut } from "./billet.ts";
+import { codeDuBillet, contenuQr, libelleStatut } from "./billet.ts";
 
 const J = "43de68f3efa040c3bf19bb94691865af";
 
@@ -8,6 +8,12 @@ test("le lien du QR code donne le jeton", () => {
   assert.equal(codeDuBillet(`https://begnanandaloacup.com/billet/${J}`), J);
   assert.equal(codeDuBillet(`https://begnanandaloacup.com/billet/${J.toUpperCase()}?x=1`), J);
   assert.equal(codeDuBillet(` ${J} `), J);
+});
+
+test("le contenu du QR code (sans lien) redonne le jeton", () => {
+  assert.equal(contenuQr(J.toUpperCase()), `BDC:${J}`);
+  assert.equal(codeDuBillet(contenuQr(J)), J);
+  assert.equal(codeDuBillet(`bdc:${J.toUpperCase()}`), J);
 });
 
 test("la référence tapée à la main, avec ou sans tiret", () => {
