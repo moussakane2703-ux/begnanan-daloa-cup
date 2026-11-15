@@ -23,6 +23,8 @@ export function Scanner() {
   const toile = useRef<HTMLCanvasElement>(null);
   const flux = useRef<MediaStream | null>(null);
   const enPause = useRef(false);
+  const dernier = useRef("");
+  const ignore = useRef({ code: "", jusqua: 0 });
   const [camera, setCamera] = useState<Camera>("arret");
   const [resultat, setResultat] = useState<ResultatControle | null>(null);
   const [saisie, setSaisie] = useState("");
@@ -86,7 +88,10 @@ export function Scanner() {
       if (!ctx) return;
       ctx.drawImage(v, 0, 0, c.width, c.height);
       const code = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, { inversionAttempts: "dontInvert" });
-      if (code?.data) controler(code.data);
+      if (!code?.data) return;
+      if (code.data === ignore.current.code && Date.now() < ignore.current.jusqua) return;
+      dernier.current = code.data;
+      controler(code.data);
     }, 160);
     return () => {
       fini = true;
@@ -99,13 +104,26 @@ export function Scanner() {
   const suivant = () => {
     setResultat(null);
     setSaisie("");
+    // Le billet qu'on vient de traiter est souvent encore devant la caméra : on l'ignore un instant.
+    ignore.current = { code: dernier.current, jusqua: Date.now() + 4000 };
+    const v = video.current;
+    if (v && flux.current) {
+      if (v.srcObject !== flux.current) v.srcObject = flux.current;
+      v.play().catch(() => {});
+    }
     enPause.current = false;
   };
 
+  // Ouvre la caméra dès l'arrivée sur la page (le navigateur ne demande l'autorisation qu'une fois).
+  useEffect(() => {
+    lancerCamera();
+  }, [lancerCamera]);
+
   return (
     <div className="scan">
-      {!resultat && (
-        <>
+      {/* La zone caméra reste en place pendant l'affichage du résultat (masquée) : la caméra
+          ne s'éteint pas et « Scanner le suivant » reprend aussitôt. */}
+      <div className="scan-zone" hidden={!!resultat}>
           <div className={`scan-video${camera === "active" ? " on" : ""}`}>
             <video ref={video} playsInline muted autoPlay />
             <canvas ref={toile} hidden />
@@ -137,8 +155,7 @@ export function Scanner() {
             <button className="btn primary sm" disabled={envoi || !saisie.trim()}>Vérifier</button>
           </form>
           {camera === "active" && <button type="button" className="btn line sm" onClick={arreterCamera}>Fermer la caméra</button>}
-        </>
-      )}
+      </div>
 
       {resultat && (
         <Resultat
