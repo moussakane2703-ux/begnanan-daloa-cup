@@ -163,7 +163,11 @@ export function Scanner() {
           envoi={envoi}
           confirmerAnnulation={confirmerAnnulation}
           setConfirmerAnnulation={setConfirmerAnnulation}
-          entrer={(billet) => demarrer(async () => afficher(await faireEntrer(billet.jeton)))}
+          entrer={(billet) => demarrer(async () => {
+            const r = await faireEntrer(billet.jeton);
+            // Succès : on l'affiche comme tel (le billet est désormais « utilisé », mais c'est cette entrée-ci).
+            afficher(r.erreur ? r : { ...r, valide: true, payeMaintenant: billet.statut === "à payer" });
+          })}
           annuler={(billet) => demarrer(async () => afficher(await annulerReservation(billet.jeton)))}
           suivant={suivant}
         />
@@ -188,6 +192,22 @@ function Resultat({ resultat, envoi, confirmerAnnulation, setConfirmerAnnulation
         <div className="scan-verdict">Refuser</div>
         <p>{resultat.erreur}</p>
         <button type="button" className="btn primary" onClick={suivant}>Scanner le suivant</button>
+      </div>
+    );
+  }
+  if (resultat.valide) {
+    return (
+      <div className="scan-res s-ok" role="status">
+        <div className="scan-verdict">Billet validé ✓</div>
+        <p className="scan-msg">
+          {resultat.payeMaintenant ? `Paiement de ${fcfa(b.prix_unitaire_fcfa)} enregistré. ` : ""}Faites entrer 1 personne.
+        </p>
+        <dl className="scan-infos">
+          <div><dt>Billet</dt><dd className="mono">{referenceBillet(b.reference, b.numero, b.quantite)}</dd></div>
+          <div><dt>Catégorie</dt><dd>{b.categorie}</dd></div>
+          {b.quantite > 1 && <div><dt>Réservation</dt><dd className="num">{b.entrees_commande} / {b.quantite} entrés</dd></div>}
+        </dl>
+        <button type="button" className="btn primary scan-gros" onClick={suivant}>Scanner le suivant</button>
       </div>
     );
   }
