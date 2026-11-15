@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { referenceBillet } from "@/lib/billet";
 import { annulerReservation, chercherBillet, faireEntrer, type BilletControle, type ResultatControle } from "../actions";
 
 const TZ = "Africa/Abidjan";
@@ -25,14 +26,12 @@ export function Scanner() {
   const [camera, setCamera] = useState<Camera>("arret");
   const [resultat, setResultat] = useState<ResultatControle | null>(null);
   const [saisie, setSaisie] = useState("");
-  const [nombre, setNombre] = useState(1);
   const [confirmerAnnulation, setConfirmerAnnulation] = useState(false);
   const [envoi, demarrer] = useTransition();
 
   const afficher = useCallback((r: ResultatControle) => {
     setResultat(r);
     setConfirmerAnnulation(false);
-    if (r.billet) setNombre(Math.max(1, r.billet.quantite - r.billet.entrees_validees));
     try {
       navigator.vibrate?.(r.billet && !r.erreur ? 80 : [60, 60, 60]);
     } catch {}
@@ -134,7 +133,7 @@ export function Scanner() {
               if (saisie.trim()) controler(saisie);
             }}
           >
-            <label className="field">Ou tapez la référence<input value={saisie} onChange={(e) => setSaisie(e.target.value)} autoComplete="off" autoCapitalize="characters" placeholder="BDC-XXXXXX" /></label>
+            <label className="field">Ou tapez la référence<input value={saisie} onChange={(e) => setSaisie(e.target.value)} autoComplete="off" autoCapitalize="characters" placeholder="BDC-XXXXXX-1" /></label>
             <button className="btn primary sm" disabled={envoi || !saisie.trim()}>Vérifier</button>
           </form>
           {camera === "active" && <button type="button" className="btn line sm" onClick={arreterCamera}>Fermer la caméra</button>}
@@ -144,13 +143,11 @@ export function Scanner() {
       {resultat && (
         <Resultat
           resultat={resultat}
-          nombre={nombre}
-          setNombre={setNombre}
           envoi={envoi}
           confirmerAnnulation={confirmerAnnulation}
           setConfirmerAnnulation={setConfirmerAnnulation}
-          entrer={(billet) => demarrer(async () => afficher(await faireEntrer(billet.reference, nombre)))}
-          annuler={(billet) => demarrer(async () => afficher(await annulerReservation(billet.reference)))}
+          entrer={(billet) => demarrer(async () => afficher(await faireEntrer(billet.jeton)))}
+          annuler={(billet) => demarrer(async () => afficher(await annulerReservation(billet.jeton)))}
           suivant={suivant}
         />
       )}
@@ -158,10 +155,8 @@ export function Scanner() {
   );
 }
 
-function Resultat({ resultat, nombre, setNombre, envoi, confirmerAnnulation, setConfirmerAnnulation, entrer, annuler, suivant }: {
+function Resultat({ resultat, envoi, confirmerAnnulation, setConfirmerAnnulation, entrer, annuler, suivant }: {
   resultat: ResultatControle;
-  nombre: number;
-  setNombre: (n: number) => void;
   envoi: boolean;
   confirmerAnnulation: boolean;
   setConfirmerAnnulation: (v: boolean) => void;
@@ -179,52 +174,43 @@ function Resultat({ resultat, nombre, setNombre, envoi, confirmerAnnulation, set
       </div>
     );
   }
-  const annule = b.statut === "annulée" || b.statut === "échouée";
-  const restant = b.quantite - b.entrees_validees;
-  const paye = b.statut === "payée";
-  const etat = annule || restant <= 0 ? "s-refus" : paye ? "s-ok" : "s-payer";
+  const refuse = b.statut === "annulé" || b.statut === "utilisé";
+  const paye = b.statut === "payé";
+  const etat = refuse ? "s-refus" : paye ? "s-ok" : "s-payer";
   const autreJour = jour(b.date_heure) !== jour(new Date());
+  const ref = referenceBillet(b.reference, b.numero, b.quantite);
 
   return (
     <div className={`scan-res ${etat}`} role="status">
       <div className="scan-verdict">
-        {annule ? "Billet annulé" : restant <= 0 ? "Déjà utilisé" : paye ? "Payé · faire entrer" : `À encaisser : ${fcfa(b.total_fcfa)}`}
+        {b.statut === "annulé" ? "Billet annulé" : b.statut === "utilisé" ? "Déjà utilisé" : paye ? "Payé · faire entrer" : `À encaisser : ${fcfa(b.prix_unitaire_fcfa)}`}
       </div>
       {resultat.ok && <p className="scan-msg">{resultat.ok}</p>}
       {resultat.erreur && <p className="scan-msg err">{resultat.erreur}</p>}
 
       <dl className="scan-infos">
-        <div><dt>Nom</dt><dd>{b.nom_acheteur}</dd></div>
-        <div><dt>Référence</dt><dd className="mono">{b.reference}</dd></div>
-        <div><dt>Catégorie</dt><dd>{b.categorie}</dd></div>
-        <div><dt>Entrées</dt><dd className="num">{b.entrees_validees} / {b.quantite}</dd></div>
+        <div><dt>Billet</dt><dd className="mono">{ref}</dd></div>
+        <div><dt>Place</dt><dd>{b.quantite > 1 ? `${b.numero} sur ${b.quantite}` : "1 personne"}</dd></div>
+        <div><dt>Catégorie</dt><dd>{b.categorie} · {fcfa(b.prix_unitaire_fcfa)}</dd></div>
+        <div><dt>Réservé par</dt><dd>{b.nom_acheteur}</dd></div>
         <div><dt>Match</dt><dd>{b.domicile ?? "?"} – {b.exterieur ?? "?"}<br /><span className="small">{quand(b.date_heure)}{b.terrain ? ` · ${b.terrain}` : ""}</span></dd></div>
-        <div><dt>Total du billet</dt><dd className="num">{fcfa(b.total_fcfa)}{paye ? " · payé" : ""}</dd></div>
+        {b.quantite > 1 && <div><dt>Réservation</dt><dd className="num">{b.entrees_commande} / {b.quantite} entrés</dd></div>}
       </dl>
-      {autreJour && !annule && restant > 0 && <p className="scan-alerte">Attention : ce billet est pour un autre jour ({quand(b.date_heure)}).</p>}
-      {restant <= 0 && b.derniere_entree && <p className="scan-alerte">Dernière entrée enregistrée à {heure(b.derniere_entree)}.</p>}
+      {autreJour && !refuse && <p className="scan-alerte">Attention : ce billet est pour un autre jour ({quand(b.date_heure)}).</p>}
+      {b.statut === "utilisé" && b.utilise_le && <p className="scan-alerte">Ce billet est déjà entré à {heure(b.utilise_le)}.</p>}
 
-      {!annule && restant > 0 && (
-        <div className="scan-actions">
-          {restant > 1 && (
-            <label className="field">Personnes qui entrent maintenant
-              <select value={nombre} onChange={(e) => setNombre(Number(e.target.value))}>
-                {Array.from({ length: restant }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </label>
-          )}
-          <button type="button" className="btn primary scan-gros" disabled={envoi} onClick={() => entrer(b)}>
-            {envoi ? "Enregistrement…" : paye ? `Faire entrer ${nombre} personne${nombre > 1 ? "s" : ""}` : `Encaissé ${fcfa(b.total_fcfa)} · faire entrer ${nombre}`}
-          </button>
-        </div>
+      {!refuse && (
+        <button type="button" className="btn primary scan-gros" disabled={envoi} onClick={() => entrer(b)}>
+          {envoi ? "Enregistrement…" : paye ? "Faire entrer 1 personne" : `Encaissé ${fcfa(b.prix_unitaire_fcfa)} · faire entrer`}
+        </button>
       )}
 
       <button type="button" className="btn line" onClick={suivant} disabled={envoi}>Scanner le suivant</button>
 
-      {b.statut === "en attente" && b.entrees_validees === 0 && (
+      {b.statut === "à payer" && b.entrees_commande === 0 && (
         confirmerAnnulation ? (
           <div className="scan-annuler">
-            <p>Annuler la réservation de {b.nom_acheteur} ? Ses places redeviennent libres.</p>
+            <p>Annuler toute la réservation de {b.nom_acheteur} ({b.quantite} billet{b.quantite > 1 ? "s" : ""}) ? Les places redeviennent libres.</p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button type="button" className="btn sm form-del-btn" disabled={envoi} onClick={() => annuler(b)}>Oui, annuler</button>
               <button type="button" className="btn line sm" onClick={() => setConfirmerAnnulation(false)}>Non</button>
