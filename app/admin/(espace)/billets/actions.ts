@@ -4,7 +4,7 @@ import { coche, ecrire, entier, texte, type Etat } from "@/lib/admin";
 import { exigerAcces } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { codeDuBillet, type StatutCommande } from "@/lib/billet";
+import { codeDuBillet, type StatutBillet } from "@/lib/billet";
 
 const categorie = (f: FormData) => ({
   nom: texte(f, "nom"),
@@ -46,11 +46,12 @@ export async function definirMatchsOuverts(_: Etat, f: FormData): Promise<Etat> 
 }
 
 export interface BilletControle {
+  jeton: string;
   reference: string;
-  statut: StatutCommande;
+  numero: number;
   quantite: number;
-  entrees_validees: number;
-  total_fcfa: number;
+  statut: StatutBillet;
+  prix_unitaire_fcfa: number;
   nom_acheteur: string;
   telephone: string;
   categorie: string;
@@ -58,52 +59,51 @@ export interface BilletControle {
   terrain: string;
   domicile: string | null;
   exterieur: string | null;
-  paye_le: string | null;
-  derniere_entree: string | null;
+  utilise_le: string | null;
+  entrees_commande: number;
 }
 export type ResultatControle = { billet?: BilletControle; erreur?: string; ok?: string };
 
-/** Lit un billet scanné (lien du QR code) ou tapé (référence), sans rien modifier. */
+/** Lit UN billet, scanné (QR code) ou tapé (référence BDC-XXXXXX-2), sans rien modifier. */
 export async function chercherBillet(lu: string): Promise<ResultatControle> {
   await exigerAcces("billets");
   const code = codeDuBillet(lu);
   if (!code) return { erreur: "Ce QR code n'est pas un billet du tournoi." };
   const db = await createClient();
-  const { data, error } = await db.rpc("controle_billet", { p_code: code });
+  const { data, error } = await db.rpc("controle_billet_unique", { p_code: code });
   if (error) {
     console.error(error);
+    if (error.code === "P0001") return { erreur: error.message };
     return { erreur: "Contrôle impossible. Vérifiez le réseau et réessayez." };
   }
   const billet = (data as BilletControle[] | null)?.[0];
   return billet ? { billet } : { erreur: "Billet inconnu : refuser l'entrée." };
 }
 
-/** Encaisse (si besoin) et fait entrer `nombre` personnes. */
-export async function faireEntrer(reference: string, nombre: number): Promise<ResultatControle> {
+/** Encaisse (si besoin) et valide ce billet : une personne entre, une seule fois. */
+export async function faireEntrer(jeton: string): Promise<ResultatControle> {
   await exigerAcces("billets");
   const db = await createClient();
-  const { error } = await db.rpc("enregistrer_entree", { p_reference: reference, p_nombre: nombre });
+  const { error } = await db.rpc("entrer_billet", { p_jeton: jeton });
   if (error) {
     console.error(error);
-    if (error.code === "P0001") return { erreur: error.message };
+    if (error.code === "P0001") return { ...(await chercherBillet(jeton)), erreur: error.message };
     return { erreur: "Enregistrement impossible. Vérifiez le réseau et réessayez." };
   }
   revalidatePath("/billetterie");
-  const r = await chercherBillet(reference);
-  return { ...r, ok: `${nombre} entrée${nombre > 1 ? "s" : ""} enregistrée${nombre > 1 ? "s" : ""}.` };
+  return { ...(await chercherBillet(jeton)), ok: "Entrée enregistrée." };
 }
 
-/** Annule une réservation non payée : ses places redeviennent libres. */
-export async function annulerReservation(reference: string): Promise<ResultatControle> {
+/** Annule la réservation de ce billet si aucun de ses billets n'est payé : ses places redeviennent libres. */
+export async function annulerReservation(jeton: string): Promise<ResultatControle> {
   await exigerAcces("billets");
   const db = await createClient();
-  const { error } = await db.rpc("annuler_reservation", { p_reference: reference });
+  const { error } = await db.rpc("annuler_reservation_billet", { p_jeton: jeton });
   if (error) {
     console.error(error);
-    if (error.code === "P0001") return { erreur: error.message };
+    if (error.code === "P0001") return { ...(await chercherBillet(jeton)), erreur: error.message };
     return { erreur: "Annulation impossible. Réessayez." };
   }
   revalidatePath("/billetterie");
-  const r = await chercherBillet(reference);
-  return { ...r, ok: "Réservation annulée." };
+  return { ...(await chercherBillet(jeton)), ok: "Réservation annulée." };
 }

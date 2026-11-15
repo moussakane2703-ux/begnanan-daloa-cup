@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { codeDuBillet, contenuQr, libelleStatut } from "./billet.ts";
+import { codeDuBillet, contenuQr, libelleStatut, referenceBillet } from "./billet.ts";
 
 const J = "43de68f3efa040c3bf19bb94691865af";
 
@@ -20,6 +20,13 @@ test("la référence tapée à la main, avec ou sans tiret", () => {
   assert.equal(codeDuBillet("bdc-ey8ktj"), "BDC-EY8KTJ");
   assert.equal(codeDuBillet("BDC EY8KTJ"), "BDC-EY8KTJ");
   assert.equal(codeDuBillet("bdcey8ktj"), "BDC-EY8KTJ");
+});
+
+test("la référence d'un billet précis d'une réservation", () => {
+  assert.equal(codeDuBillet("bdc-ey8ktj-2"), "BDC-EY8KTJ-2");
+  assert.equal(codeDuBillet("BDCEY8KTJ-02"), "BDC-EY8KTJ-2");
+  assert.equal(referenceBillet("BDC-EY8KTJ", 2, 3), "BDC-EY8KTJ-2");
+  assert.equal(referenceBillet("BDC-EY8KTJ", 1, 1), "BDC-EY8KTJ");
 });
 
 test("un autre QR code n'est pas un billet", () => {
