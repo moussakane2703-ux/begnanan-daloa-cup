@@ -62,7 +62,14 @@ export interface BilletControle {
   utilise_le: string | null;
   entrees_commande: number;
 }
-export type ResultatControle = { billet?: BilletControle; erreur?: string; ok?: string };
+export type ResultatControle = {
+  billet?: BilletControle;
+  erreur?: string;
+  ok?: string;
+  /** Rempli par le scanner : ce billet vient d'être validé (et payé si `payeMaintenant`). */
+  valide?: boolean;
+  payeMaintenant?: boolean;
+};
 
 /** Lit UN billet, scanné (QR code) ou tapé (référence BDC-XXXXXX-2), sans rien modifier. */
 export async function chercherBillet(lu: string): Promise<ResultatControle> {
@@ -91,7 +98,7 @@ export async function faireEntrer(jeton: string): Promise<ResultatControle> {
     return { erreur: "Enregistrement impossible. Vérifiez le réseau et réessayez." };
   }
   revalidatePath("/billetterie");
-  return { ...(await chercherBillet(jeton)), ok: "Entrée enregistrée." };
+  return { ...(await chercherBillet(jeton)), ok: "Billet validé." };
 }
 
 /** Annule la réservation de ce billet si aucun de ses billets n'est payé : ses places redeviennent libres. */
