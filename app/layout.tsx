@@ -6,9 +6,9 @@ import { Header, TabBar } from "@/components/Navigation";
 import { EnregistrementHorsLigne } from "@/components/HorsLigne";
 import { PiedPartenaires } from "@/components/Partenaires";
 import { SITE } from "@/lib/site";
+import { DESCRIPTION, OPEN_GRAPH } from "@/lib/metadata";
 import "./globals.css";
 
-const DESCRIPTION = "Bêgnanan Daloa Cup, le tournoi de maracana de Daloa (Côte d'Ivoire) : billetterie, matchs en direct, résultats, classements et médias.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   applicationName: "Bêgnanan Cup",
   appleWebApp: { capable: true, title: "Bêgnanan Cup", statusBarStyle: "default" },
   // Image de partage : app/opengraph-image.jpg (1200 × 630, moins de 300 Ko pour WhatsApp).
-  openGraph: { type: "website", url: "./", locale: "fr_FR", siteName: "BÊGNANAN DALOA CUP", description: DESCRIPTION },
+  openGraph: { ...OPEN_GRAPH, url: "./" },
   twitter: { card: "summary_large_image" },
   // Codes de vérification Google Search Console, un par adresse (begnanandaloacup.com, puis l'ancienne
   // adresse vercel.app). Publics, à ne pas retirer : Google les revérifie.

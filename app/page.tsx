@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Annonces } from "@/components/Annonces";
@@ -9,10 +10,14 @@ import { SectionPartenaires } from "@/components/Partenaires";
 import { Hero3D } from "@/components/logo3d/Hero3D";
 import { getActualitesClubs, getAlertes, getClubs, getMatchs, getPublications, getTournoi, parId } from "@/lib/data";
 import { SITE } from "@/lib/site";
+import { OPEN_GRAPH } from "@/lib/metadata";
 import { dateCourte, dateLongue, heure, jourCourt } from "@/lib/format";
 import { CartePublication } from "./medias/CartePublication";
 
 export const revalidate = 30;
+
+// Adresse de l'accueil écrite en dur : en production, le « ./ » du layout donnait « /index ».
+export const metadata: Metadata = { alternates: { canonical: "/" }, openGraph: { ...OPEN_GRAPH, url: "/" } };
 
 // Accès directs vers chaque rubrique, pour qu'aucune ne soit cachée sur téléphone.
 const RUBRIQUES = [
