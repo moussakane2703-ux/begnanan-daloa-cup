@@ -51,7 +51,7 @@ export default async function Accueil() {
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: { "@type": "Place", name: tournoi.lieu, address: { "@type": "PostalAddress", addressLocality: "Daloa", addressCountry: "CI" } },
     image: [`${SITE}/opengraph-image.jpg`, `${SITE}/logo.webp`],
-    organizer: { "@type": "Organization", name: "Comité d'organisation de la BÊGNANAN DALOA CUP", url: SITE },
+    organizer: { "@type": "Organization", name: "Comité d'organisation du BÊGNANAN DALOA CUP", url: SITE },
   };
 
   return (

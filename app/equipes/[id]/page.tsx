@@ -11,7 +11,7 @@ export const revalidate = 30;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const club = (await getClubs()).find((c) => c.id === id);
-  return club ? { title: club.nom, description: club.presentation ?? `Actualités, effectif et matchs de ${club.nom} à la BÊGNANAN DALOA CUP.` } : {};
+  return club ? { title: club.nom, description: club.presentation ?? `Actualités, effectif et matchs de ${club.nom} au BÊGNANAN DALOA CUP.` } : {};
 }
 
 export default async function FicheClub({ params }: { params: Promise<{ id: string }> }) {

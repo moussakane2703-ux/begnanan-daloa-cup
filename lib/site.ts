@@ -1,8 +1,11 @@
 import "server-only";
 import { headers } from "next/headers";
 
-/** Nom de domaine du tournoi. L'ancienne adresse begnanan-daloa-cup.vercel.app reste en service. */
-const ADRESSE_OFFICIELLE = "https://begnanandaloacup.com";
+/**
+ * Nom de domaine du tournoi, avec « www » : Vercel redirige begnanandaloacup.com vers www, et Google
+ * refuse d'indexer une adresse qui redirige. L'ancienne adresse begnanan-daloa-cup.vercel.app reste en service.
+ */
+const ADRESSE_OFFICIELLE = "https://www.begnanandaloacup.com";
 
 /**
  * Adresse publique du site, pour les liens des QR codes. On vise toujours l'adresse de production :

@@ -14,11 +14,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "BÊGNANAN DALOA CUP", template: "%s · BÊGNANAN DALOA CUP" },
   description: DESCRIPTION,
+  // Adresse de référence de chaque page (www.begnanandaloacup.com) : Google ne garde qu'un exemplaire
+  // même quand la page est aussi ouverte depuis begnanan-daloa-cup.vercel.app.
+  alternates: { canonical: "./" },
   icons: { icon: "/logo-small.webp" },
   applicationName: "Bêgnanan Cup",
   appleWebApp: { capable: true, title: "Bêgnanan Cup", statusBarStyle: "default" },
   // Image de partage : app/opengraph-image.jpg (1200 × 630, moins de 300 Ko pour WhatsApp).
-  openGraph: { type: "website", locale: "fr_FR", siteName: "BÊGNANAN DALOA CUP", description: DESCRIPTION },
+  openGraph: { type: "website", url: "./", locale: "fr_FR", siteName: "BÊGNANAN DALOA CUP", description: DESCRIPTION },
   twitter: { card: "summary_large_image" },
   // Codes de vérification Google Search Console, un par adresse (begnanandaloacup.com, puis l'ancienne
   // adresse vercel.app). Publics, à ne pas retirer : Google les revérifie.
