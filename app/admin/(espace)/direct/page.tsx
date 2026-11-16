@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Formulaire } from "@/components/admin/Formulaire";
+import { LiensLive } from "@/components/admin/LiensLive";
 import { ChronoComite } from "@/components/ChronoMatch";
 import { StatutPill } from "@/components/StatutMatch";
 import { TirsAuBut } from "@/components/TirsAuBut";
 import { exigerAcces } from "@/lib/auth";
 import { bilanTirs, type Durees } from "@/lib/chrono";
 import { heure, jourCourt } from "@/lib/format";
+import { adresseDuSite } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { EVENEMENTS, type Club, type EvenementMatch, type Match, type TirAuBut, type Tournoi } from "@/lib/types";
 import { changerStatut, choisirHommeDuMatch, reglerTemps, retirerEvenement, retirerTir } from "./actions";
@@ -28,13 +30,17 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
   const clubs = new Map(((c ?? []) as Pick<Club, "id" | "nom">[]).map((x) => [x.id, x]));
   const nom = (id: string) => clubs.get(id)?.nom ?? "?";
   const match = matchs.find((x) => x.id === demande) ?? matchs.find((x) => x.statut === "en cours") ?? matchs.find((x) => x.statut === "programmé");
+  const site = await adresseDuSite();
 
   if (!match) {
     return (
+      <>
       <div className="card">
         <h3 style={{ marginBottom: 6 }}>Match en direct</h3>
         <p className="small">Aucun match à suivre : ajoutez les matchs dans « Clubs et matchs ». Les matchs dont le résultat est validé n&apos;apparaissent plus ici.</p>
       </div>
+      <LiensLive site={site} />
+      </>
     );
   }
 
@@ -97,6 +103,8 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
           Le score se calcule à partir des buts saisis ici. Le résultat devient officiel quand vous le validez dans « Clubs et matchs ».
         </p>
       </div>
+
+      <LiensLive site={site} matchId={match.id} matchNom={`${nom(match.club_domicile)} – ${nom(match.club_exterieur)}`} />
 
       {(seance || tirs.length > 0) && (
         <div className="card">
