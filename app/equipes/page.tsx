@@ -7,7 +7,7 @@ import { getActualitesClubs, getClubs, getTournoi, parId } from "@/lib/data";
 export const revalidate = 30;
 export const metadata: Metadata = {
   title: "Clubs",
-  description: "Les clubs de la BÊGNANAN DALOA CUP : leurs actualités, leurs joueurs et leurs matchs.",
+  description: "Les clubs du BÊGNANAN DALOA CUP : leurs actualités, leurs joueurs et leurs matchs.",
 };
 
 export default async function Equipes() {
