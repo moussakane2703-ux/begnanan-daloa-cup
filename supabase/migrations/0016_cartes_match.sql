@@ -76,8 +76,9 @@ begin
   if new.club_id not in (m.club_domicile, m.club_exterieur) then
     raise exception 'Ce club ne joue pas ce match.';
   end if;
-  new.titulaires := array(select distinct unnest(new.titulaires));
-  new.remplacants := array(select distinct unnest(new.remplacants));
+  -- Doublons retirés en gardant l'ordre choisi par le club.
+  new.titulaires := array(select x from unnest(new.titulaires) with ordinality t(x, i) group by x order by min(i));
+  new.remplacants := array(select x from unnest(new.remplacants) with ordinality t(x, i) group by x order by min(i));
   if new.titulaires && new.remplacants then
     raise exception 'Un joueur ne peut pas être à la fois titulaire et remplaçant.';
   end if;
