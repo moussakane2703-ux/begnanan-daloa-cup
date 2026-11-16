@@ -53,6 +53,25 @@ export interface Match {
   tab_exterieur?: number | null;
   /** Billetterie : le match est ouvert à la réservation en ligne. */
   reservation_ouverte?: boolean;
+  /** Score à la mi-temps saisi à la main (match sans saisie des buts en direct). */
+  mt_buts_domicile?: number | null;
+  mt_buts_exterieur?: number | null;
+  /** Homme du match. */
+  hdm_joueur_id?: string | null;
+  hdm_nom?: string | null;
+  hdm_club_id?: string | null;
+}
+
+/** Composition d'une équipe pour un match (identifiants des joueurs). */
+export interface Composition {
+  match_id: string;
+  club_id: string;
+  titulaires: string[];
+  remplacants: string[];
+  capitaine: string | null;
+  coach: string | null;
+  publiee: boolean;
+  modifie_le: string;
 }
 
 export type Periode = "mt1" | "mt2" | "prol1" | "prol2" | "tab";
@@ -89,6 +108,8 @@ export interface EvenementMatch {
   joueur_id: string | null;
   joueur_nom: string | null;
   minute: number | null;
+  /** Période de la saisie (vide pour les saisies faites avant la migration 0016). */
+  periode?: Exclude<Periode, "tab"> | null;
   cree_le: string;
 }
 

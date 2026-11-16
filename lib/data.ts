@@ -1,6 +1,6 @@
 import "server-only";
 import { createPublicClient, supabaseConfigured } from "./supabase/server";
-import type { ActualiteClub, Alerte, CommentaireClub, JoueurPublic, Partenaire, Buteur, CategorieBillet, EvenementMatch, Club, LigneClassement, Match, Photo, Publication, TirAuBut, Tournoi } from "./types";
+import type { Composition, ActualiteClub, Alerte, CommentaireClub, JoueurPublic, Partenaire, Buteur, CategorieBillet, EvenementMatch, Club, LigneClassement, Match, Photo, Publication, TirAuBut, Tournoi } from "./types";
 
 const TOURNOI_PAR_DEFAUT: Tournoi = {
   nom: "BÊGNANAN DALOA CUP",
@@ -114,3 +114,14 @@ export const getPartenaires = async () => {
   const rang = { principal: 0, officiel: 1, soutien: 2 };
   return liste.sort((a, b) => rang[a.niveau] - rang[b.niveau]);
 };
+
+/** Buts et cartons de tous les matchs (cartes de match : buteurs et score par mi-temps). */
+export const getTousEvenements = () =>
+  lire<EvenementMatch[]>((db) => db.from("evenements_match").select("*").order("minute", { nullsFirst: false }).order("cree_le"), []);
+
+/** Compositions publiées d'un match (ou de tous les matchs). */
+export const getCompositions = (matchId?: string) =>
+  lire<Composition[]>((db) => {
+    const q = db.from("compositions").select("*").eq("publiee", true);
+    return matchId ? q.eq("match_id", matchId) : q;
+  }, []);

@@ -8,7 +8,7 @@ import { bilanTirs, type Durees } from "@/lib/chrono";
 import { heure, jourCourt } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { EVENEMENTS, type Club, type EvenementMatch, type Match, type TirAuBut, type Tournoi } from "@/lib/types";
-import { changerStatut, reglerTemps, retirerEvenement, retirerTir } from "./actions";
+import { changerStatut, choisirHommeDuMatch, reglerTemps, retirerEvenement, retirerTir } from "./actions";
 import { CommandesChrono, SaisieEquipe, SaisieTir } from "./Saisie";
 
 /** Match en direct : chrono, buts, cartons et tirs au but saisis depuis le téléphone, score mis à jour sur le site. */
@@ -16,16 +16,17 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
   await exigerAcces("direct");
   const db = await createClient();
   const [{ data: m }, { data: c }, { data: t }] = await Promise.all([
-    db.from("matchs").select("*").in("statut", ["programmé", "en cours", "terminé"]).eq("resultat_valide", false).order("date_heure"),
+    db.from("matchs").select("*").in("statut", ["programmé", "en cours", "terminé"]).order("date_heure"),
     db.from("clubs").select("id, nom"),
     db.from("tournoi").select("*").eq("id", 1).single<Tournoi>(),
   ]);
   const durees: Durees = { mi_temps: t?.duree_mi_temps ?? null, prolongation: t?.duree_prolongation ?? null };
   const tireurs = t?.tab_tireurs ?? 3;
-  const matchs = (m ?? []) as Match[];
+  const demande = (await searchParams).match;
+  // Les matchs validés restent accessibles depuis « Clubs et matchs » (Homme du match), sans figurer dans la liste.
+  const matchs = ((m ?? []) as Match[]).filter((x) => !x.resultat_valide || x.id === demande);
   const clubs = new Map(((c ?? []) as Pick<Club, "id" | "nom">[]).map((x) => [x.id, x]));
   const nom = (id: string) => clubs.get(id)?.nom ?? "?";
-  const demande = (await searchParams).match;
   const match = matchs.find((x) => x.id === demande) ?? matchs.find((x) => x.statut === "en cours") ?? matchs.find((x) => x.statut === "programmé");
 
   if (!match) {
@@ -59,7 +60,7 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
           <label className="field">Match
             <select name="match" defaultValue={match.id}>
               {matchs.map((x) => (
-                <option key={x.id} value={x.id}>{jourCourt(x.date_heure)} {heure(x.date_heure)} · {nom(x.club_domicile)} – {nom(x.club_exterieur)} ({x.statut})</option>
+                <option key={x.id} value={x.id}>{jourCourt(x.date_heure)} {heure(x.date_heure)} · {nom(x.club_domicile)} – {nom(x.club_exterieur)} ({x.resultat_valide ? "validé" : x.statut})</option>
               ))}
             </select>
           </label>
@@ -119,11 +120,40 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
         </div>
       )}
 
-      <div className="direct-equipes">
+      {match.resultat_valide && (
+        <div className="card"><p className="small">Résultat validé : les buts et cartons ne se modifient plus (retirez la validation dans « Clubs et matchs » pour corriger).</p></div>
+      )}
+
+      {!match.resultat_valide && <div className="direct-equipes">
         {seance
           ? equipes.map((e) => <SaisieTir key={e.id} matchId={match.id} club={e} joueurs={liste(e.id)} aSonTour={aSonTour(e.id)} />)
           : equipes.map((e) => <SaisieEquipe key={e.id} matchId={match.id} club={e} joueurs={liste(e.id)} />)}
-      </div>
+      </div>}
+
+      {"hdm_nom" in match && (
+        <div className="card">
+          <h3 style={{ marginBottom: 6 }}>⭐ Homme du match</h3>
+          <p className="small" style={{ marginBottom: 10 }}>
+            {match.hdm_nom ? <>Actuellement : <b>{match.hdm_nom}</b> ({nom(match.hdm_club_id ?? "")}). </> : "Pas encore désigné. "}
+            Il apparaît sur la carte du match et sur l&apos;affiche du résultat.
+          </p>
+          <Formulaire action={choisirHommeDuMatch} bouton="Enregistrer" className="form-row">
+            <input type="hidden" name="match_id" value={match.id} />
+            <label className="field" style={{ flex: "2 1 220px" }}>Joueur
+              <select name="hdm" defaultValue={match.hdm_joueur_id ?? (match.hdm_nom ? `libre:${match.hdm_club_id}` : "")}>
+                <option value="">Aucun</option>
+                {equipes.map((e) => (
+                  <optgroup key={e.id} label={e.nom}>
+                    {liste(e.id).map((x) => <option key={x.id} value={x.id}>{x.nom}</option>)}
+                    <option value={`libre:${e.id}`}>Autre joueur de {e.nom} (nom ci-contre)</option>
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ flex: "1 1 160px" }}>Nom (si « autre joueur »)<input name="hdm_libre" maxLength={150} defaultValue={match.hdm_joueur_id ? "" : match.hdm_nom ?? ""} /></label>
+          </Formulaire>
+        </div>
+      )}
 
       <div className="card">
         <h3 style={{ marginBottom: 10 }}>Déroulé ({evenements.length})</h3>

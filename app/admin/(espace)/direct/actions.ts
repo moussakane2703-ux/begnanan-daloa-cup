@@ -34,9 +34,35 @@ export async function ajouterEvenement(_: Etat, f: FormData): Promise<Etat> {
   const libelle = EVENEMENTS[type as TypeEvenement].libelle;
   return ecrire(
     "direct",
-    (d) => d.from("evenements_match").insert({ match_id: matchId, club_id: club, type, joueur_id: joueurId, joueur_nom: j ? `${j.prenoms} ${j.nom}` : null, minute: minuteJouee }),
+    (d) => d.from("evenements_match").insert({ match_id: matchId, club_id: club, type, joueur_id: joueurId, joueur_nom: j ? `${j.prenoms} ${j.nom}` : null, minute: minuteJouee, ...periodeSaisie(m) }),
     `${libelle} enregistré${type === "but" || type === "csc" ? " : score mis à jour" : ""}.`,
   );
+}
+
+// Période du but (détail par mi-temps sur les cartes de match). Rien tant que la migration 0016 n'est pas faite.
+const periodeSaisie = (m: Match) => (m.periode && m.periode !== "tab" && "hdm_nom" in m ? { periode: m.periode } : {});
+
+/** Homme du match : un joueur de l'une des deux équipes, ou un nom saisi à la main. */
+export async function choisirHommeDuMatch(_: Etat, f: FormData): Promise<Etat> {
+  await exigerAcces("direct");
+  const id = texte(f, "match_id");
+  const choix = texte(f, "hdm");
+  const libre = texte(f, "hdm_libre").slice(0, 150);
+  const db = await createClient();
+  const { data: m } = await db.from("matchs").select("club_domicile, club_exterieur").eq("id", id).single();
+  if (!m) return { erreur: "Match introuvable." };
+  let maj: { hdm_joueur_id: string | null; hdm_nom: string | null; hdm_club_id: string | null } = { hdm_joueur_id: null, hdm_nom: null, hdm_club_id: null };
+  if (choix.startsWith("libre:")) {
+    const club = choix.slice(6);
+    if (!libre) return { erreur: "Écrivez le nom du joueur." };
+    if (![m.club_domicile, m.club_exterieur].includes(club)) return { erreur: "Équipe invalide." };
+    maj = { hdm_joueur_id: null, hdm_nom: libre, hdm_club_id: club };
+  } else if (choix) {
+    const { data: j } = await db.from("joueurs").select("id, nom, prenoms, club_id").eq("id", choix).single();
+    if (!j || ![m.club_domicile, m.club_exterieur].includes(j.club_id)) return { erreur: "Ce joueur ne joue pas ce match." };
+    maj = { hdm_joueur_id: j.id, hdm_nom: `${j.prenoms} ${j.nom}`, hdm_club_id: j.club_id };
+  }
+  return ecrire("direct", (d) => d.from("matchs").update(maj).eq("id", id), maj.hdm_nom ? `Homme du match : ${maj.hdm_nom}.` : "Homme du match retiré.");
 }
 
 export async function retirerEvenement(_: Etat, f: FormData): Promise<Etat> {

@@ -84,12 +84,23 @@ export default async function AdminMatchs() {
           {((matchs ?? []) as Match[]).map((m) => (
             <div key={m.id} className="adm-item">
               <b>{nom.get(m.club_domicile)} – {nom.get(m.club_exterieur)}</b>
-              <span className="small">{m.phase}{m.poule ? ` · Poule ${m.poule}` : ""}</span>
+              <span className="small">
+                {m.phase}{m.poule ? ` · Poule ${m.poule}` : ""}
+                {m.hdm_nom ? ` · Homme du match : ${m.hdm_nom}` : ""}
+                {" · "}<a href={`/admin/direct?match=${m.id}`}>Buts, cartons et Homme du match</a>
+                {" · "}<a href={`/matchs/${m.id}`} target="_blank">Carte et affiches</a>
+              </span>
               <Formulaire action={modifierMatch} className="form-row">
                 <input type="hidden" name="id" value={m.id} />
                 <label className="field">Statut<select name="statut" defaultValue={m.statut}>{STATUTS.map((s) => <option key={s}>{s}</option>)}</select></label>
                 <label className="field">Buts dom.<input name="buts_domicile" type="number" min={0} defaultValue={m.buts_domicile ?? ""} /></label>
                 <label className="field">Buts ext.<input name="buts_exterieur" type="number" min={0} defaultValue={m.buts_exterieur ?? ""} /></label>
+                {"hdm_nom" in m && (
+                  <>
+                    <label className="field">Mi-temps dom.<input name="mt_buts_domicile" type="number" min={0} defaultValue={m.mt_buts_domicile ?? ""} title="Facultatif : utile si les buts n'ont pas été saisis en direct" /></label>
+                    <label className="field">Mi-temps ext.<input name="mt_buts_exterieur" type="number" min={0} defaultValue={m.mt_buts_exterieur ?? ""} /></label>
+                  </>
+                )}
                 <label className="field">Date et heure<input name="date_heure" type="datetime-local" defaultValue={local(m.date_heure)} required /></label>
                 <label className="field">Terrain<input name="terrain" defaultValue={m.terrain} /></label>
                 <label className="chk"><input name="resultat_valide" type="checkbox" defaultChecked={m.resultat_valide} /> Résultat validé</label>

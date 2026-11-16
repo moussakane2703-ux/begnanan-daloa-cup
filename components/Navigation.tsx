@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 const LIENS = [
   ["/", "Accueil"],
   ["/matchs", "Matchs"],
+  ["/resultats", "Résultats"],
   ["/medias", "Médias"],
   ["/classements", "Classements"],
   ["/equipes", "Clubs"],
@@ -117,6 +118,7 @@ const ICONES: Record<string, React.ReactNode> = {
 const ONGLETS = [
   ["/", "Accueil"],
   ["/matchs", "Matchs"],
+  ["/resultats", "Résultats"],
   ["/medias", "Médias"],
   ["/billetterie", "Billets"],
   ["/infos", "Infos"],

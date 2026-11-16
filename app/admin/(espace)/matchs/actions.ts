@@ -67,6 +67,12 @@ export async function modifierMatch(_: Etat, f: FormData): Promise<Etat> {
   const bd = entier(f, "buts_domicile");
   const be = entier(f, "buts_exterieur");
   const valide = coche(f, "resultat_valide");
+  const mtd = entier(f, "mt_buts_domicile");
+  const mte = entier(f, "mt_buts_exterieur");
+  if ((mtd === null) !== (mte === null)) return { erreur: "Score à la mi-temps : remplissez les deux cases, ou aucune." };
+  if (mtd !== null && mte !== null && bd !== null && be !== null && (mtd > bd || mte > be)) return { erreur: "Le score à la mi-temps ne peut pas dépasser le score final." };
+  // Champs ajoutés par la migration 0016 : envoyés seulement s'ils sont dans le formulaire.
+  const miTemps = f.has("mt_buts_domicile") ? { mt_buts_domicile: mtd, mt_buts_exterieur: mte } : {};
   if (statut === "terminé" && (bd === null || be === null)) return { erreur: "Saisissez le score avant de terminer le match." };
   if (valide && statut !== "terminé") return { erreur: "Seul un match terminé peut être validé." };
   const r = await ecrire("matchs", (db) =>
@@ -77,6 +83,7 @@ export async function modifierMatch(_: Etat, f: FormData): Promise<Etat> {
         buts_domicile: bd,
         buts_exterieur: be,
         resultat_valide: valide,
+        ...miTemps,
         date_heure: dateHeure(f),
         terrain: texte(f, "terrain"),
         modifie_le: new Date().toISOString(),

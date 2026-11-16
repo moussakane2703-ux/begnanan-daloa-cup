@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { Crest } from "@/components/Crest";
-import { trierClassement } from "@/lib/classement";
+import { TableauxPoules } from "@/components/TableauxPoules";
 import { getButeurs, getClassement, getClubs, parId } from "@/lib/data";
-import type { Club } from "@/lib/types";
 
 export const revalidate = 30;
 export const metadata: Metadata = { title: "Classements" };
@@ -43,7 +41,6 @@ export default async function Classements() {
   const index = parId(clubs);
   const meilleurs = buteurs.filter((b) => b.buts > 0).sort((a, b) => b.buts - a.buts || a.joueur_nom.localeCompare(b.joueur_nom, "fr")).slice(0, 10);
   const sanctions = buteurs.filter((b) => b.jaunes + b.rouges > 0).sort((a, b) => b.rouges - a.rouges || b.jaunes - a.jaunes).slice(0, 10);
-  const poules = POULES.map((p) => ({ poule: p, ...trierClassement(lignes.filter((l) => l.poule === p)) })).filter((p) => p.triees.length);
 
   return (
     <>
@@ -59,46 +56,7 @@ export default async function Classements() {
               </p>
             </div>
           </div>
-          {poules.length ? (
-            <div className="grid g2">
-              {poules.map(({ poule, triees, egalites }) => (
-                <div key={poule}>
-                  <h3 style={{ marginBottom: 10 }}>Poule {poule}</h3>
-                  <div className="tbl-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>#</th><th>Équipe</th>
-                          <th className="n">J</th><th className="n">G</th><th className="n">N</th><th className="n">P</th>
-                          <th className="n">Diff</th><th className="n">Pts</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {triees.map((l, i) => (
-                          <tr key={l.club_id} className={i < 2 ? "q" : ""}>
-                            <td className="rank">{i + 1}{egalites.has(l.club_id) ? "*" : ""}</td>
-                            <td>
-                              <div className="trow">
-                                <Crest club={{ id: l.club_id, nom: l.nom, sigle: l.sigle, couleur: l.couleur } as Club} />
-                                <span className="nm">{l.nom}</span>
-                              </div>
-                            </td>
-                            <td className="n">{l.joues}</td><td className="n">{l.gagnes}</td>
-                            <td className="n">{l.nuls}</td><td className="n">{l.perdus}</td>
-                            <td className="n">{l.difference > 0 ? "+" : ""}{l.difference}</td>
-                            <td className="n pts">{l.points}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {egalites.size > 0 && <p className="small" style={{ marginTop: 6 }}>* Égalité parfaite : décision du comité attendue.</p>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="card vide"><h3>Classements à venir</h3><p className="small">Les poules seront affichées après le tirage au sort.</p></div>
-          )}
+          <TableauxPoules lignes={lignes} clubs={index} />
           <p className="small" style={{ marginTop: 12 }}>Liseré vert : places qualificatives (format à confirmer).</p>
         </div>
       </section>
