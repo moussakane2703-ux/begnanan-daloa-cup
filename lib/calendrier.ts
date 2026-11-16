@@ -13,11 +13,46 @@ export function melanger<T>(liste: readonly T[], hasard: (n: number) => number):
   return r;
 }
 
-/** Répartit les clubs au hasard dans `nbPoules` poules d'effectifs égaux (à un club près). */
-export function tirerPoules(clubs: readonly string[], nbPoules: number, hasard: (n: number) => number): Record<string, string[]> {
+/** Tête de série : un seul club par poule ; `poules` limite éventuellement les poules possibles (ex. « FG »). */
+export interface TeteDeSerie {
+  id: string;
+  poules?: string | null;
+}
+
+/**
+ * Répartit les clubs au hasard dans `nbPoules` poules d'effectifs égaux (à un club près ; les premières
+ * poules prennent le club en plus). Les têtes de série sont d'abord placées une par poule, au hasard
+ * parmi les poules permises ; tous les autres clubs sont ensuite tirés au hasard dans les places restantes.
+ */
+export function tirerPoules(
+  clubs: readonly string[],
+  nbPoules: number,
+  hasard: (n: number) => number,
+  tetes: readonly TeteDeSerie[] = [],
+): Record<string, string[]> {
   if (nbPoules < 1 || nbPoules > LETTRES_POULES.length) throw new Error("Nombre de poules invalide.");
-  const poules: Record<string, string[]> = Object.fromEntries(LETTRES_POULES.slice(0, nbPoules).map((p) => [p, []]));
-  melanger(clubs, hasard).forEach((c, i) => poules[LETTRES_POULES[i % nbPoules]].push(c));
+  const lettres: string[] = LETTRES_POULES.slice(0, nbPoules);
+  const tetesEngagees = tetes.filter((t) => clubs.includes(t.id));
+  if (tetesEngagees.length > nbPoules) throw new Error(`${tetesEngagees.length} têtes de série pour ${nbPoules} poules : une seule par poule est possible.`);
+  const permises = (t: TeteDeSerie) => lettres.filter((p) => !t.poules || t.poules.includes(p));
+
+  const poules: Record<string, string[]> = Object.fromEntries(lettres.map((p) => [p, []]));
+  // Les têtes de série les plus limitées choisissent en premier, pour qu'aucune ne reste sans poule.
+  const libres = new Set(lettres);
+  for (const t of melanger(tetesEngagees, hasard).sort((a, b) => permises(a).length - permises(b).length)) {
+    const choix = permises(t).filter((p) => libres.has(p));
+    if (!choix.length) throw new Error("Impossible de placer toutes les têtes de série avec les poules permises.");
+    const p = choix[hasard(choix.length)];
+    poules[p].push(t.id);
+    libres.delete(p);
+  }
+
+  const places = lettres.flatMap((p, i) => {
+    const taille = Math.floor(clubs.length / nbPoules) + (i < clubs.length % nbPoules ? 1 : 0);
+    return Array<string>(Math.max(0, taille - poules[p].length)).fill(p);
+  });
+  const ids = new Set(tetesEngagees.map((t) => t.id));
+  melanger(clubs.filter((c) => !ids.has(c)), hasard).forEach((c, i) => poules[places[i]].push(c));
   return poules;
 }
 

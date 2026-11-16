@@ -16,6 +16,31 @@ test("le tirage répartit 32 clubs en 8 poules de 4, sans doublon ni oubli", () 
   assert.deepEqual(Object.values(p).flat().sort(), clubs(32).sort());
 });
 
+test("31 clubs en 8 poules : A à G ont 4 clubs, H en a 3", () => {
+  const p = tirerPoules(clubs(31), 8, graine(3));
+  assert.deepEqual(Object.values(p).map((l) => l.length), [4, 4, 4, 4, 4, 4, 4, 3]);
+  assert.deepEqual(Object.values(p).flat().sort(), clubs(31).sort());
+});
+
+test("têtes de série : une par poule, et les poules permises sont respectées", () => {
+  const tetes = [...clubs(7).map((id) => ({ id })), { id: "C8", poules: "FG" }];
+  const vues = new Set<string>();
+  for (let g = 1; g <= 200; g++) {
+    const p = tirerPoules(clubs(31), 8, graine(g), tetes);
+    assert.deepEqual(Object.values(p).map((l) => l.length), [4, 4, 4, 4, 4, 4, 4, 3]);
+    assert.deepEqual(Object.values(p).flat().sort(), clubs(31).sort());
+    for (const l of Object.values(p)) assert.equal(l.filter((c) => tetes.some((t) => t.id === c)).length, 1);
+    const pC8 = Object.keys(p).find((k) => p[k].includes("C8"))!;
+    assert.ok(["F", "G"].includes(pC8));
+    vues.add(pC8);
+  }
+  assert.equal(vues.size, 2);
+});
+
+test("trop de têtes de série : le tirage refuse", () => {
+  assert.throws(() => tirerPoules(clubs(31), 4, graine(1), clubs(5).map((id) => ({ id }))));
+});
+
 test("le tirage dépend du hasard", () => {
   assert.notDeepEqual(tirerPoules(clubs(32), 8, graine(1)), tirerPoules(clubs(32), 8, graine(2)));
 });

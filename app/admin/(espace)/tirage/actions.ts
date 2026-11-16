@@ -13,18 +13,24 @@ const toutes = async (ops: PromiseLike<{ error: { message: string; code?: string
 });
 
 const clubsEngages = async (db: Db) => {
-  const { data } = await db.from("clubs").select("id, poule, disqualifie").order("nom");
-  return (data ?? []).filter((c) => !c.disqualifie) as { id: string; poule: string | null }[];
+  const { data } = await db.from("clubs").select("id, poule, disqualifie, tete_de_serie, poules_possibles").order("nom");
+  return (data ?? []).filter((c) => !c.disqualifie) as { id: string; poule: string | null; tete_de_serie: boolean; poules_possibles: string | null }[];
 };
 
-/** Tirage au sort intégral : chaque club engagé reçoit une poule au hasard. */
+/** Tirage au sort : les têtes de série sont placées une par poule, puis les autres clubs au hasard. */
 export async function tirerAuSort(_: Etat, f: FormData): Promise<Etat> {
   const nb = entier(f, "nb_poules") ?? 0;
   if (nb < 1 || nb > LETTRES_POULES.length) return { erreur: "Choisissez entre 1 et 8 poules." };
   const db = await createClient();
   const clubs = await clubsEngages(db);
   if (clubs.length < nb * 2) return { erreur: `Il faut au moins ${nb * 2} clubs pour ${nb} poules (${clubs.length} engagés).` };
-  const poules = tirerPoules(clubs.map((c) => c.id), nb, randomInt);
+  const tetes = clubs.filter((c) => c.tete_de_serie).map((c) => ({ id: c.id, poules: c.poules_possibles }));
+  let poules;
+  try {
+    poules = tirerPoules(clubs.map((c) => c.id), nb, randomInt, tetes);
+  } catch (e) {
+    return { erreur: (e as Error).message };
+  }
   return ecrire(
     "tirage",
     (db) => toutes(Object.entries(poules).flatMap(([p, ids]) => ids.map((id) => db.from("clubs").update({ poule: p }).eq("id", id)))),
