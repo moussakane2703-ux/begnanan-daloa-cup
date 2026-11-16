@@ -1,6 +1,8 @@
 import { Formulaire } from "@/components/admin/Formulaire";
+import { LiensLive } from "@/components/admin/LiensLive";
 import { ChampPhoto } from "@/components/ChampPhoto";
 import { exigerAcces } from "@/lib/auth";
+import { adresseDuSite } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import type { Club, Match, Photo, Publication } from "@/lib/types";
 import { TYPES_PUBLICATION } from "@/app/medias/CartePublication";
@@ -60,8 +62,10 @@ export default async function AdminMedias() {
     libelle: `${nom.get(m.club_domicile)} – ${nom.get(m.club_exterieur)} · ${new Date(m.date_heure).toLocaleDateString("fr-FR", { day: "numeric", month: "short", timeZone: "Africa/Abidjan" })}`,
   }));
 
+  const site = await adresseDuSite();
   return (
     <>
+      <LiensLive site={site} />
       <div className="card">
         <h3 style={{ marginBottom: 12 }}>Nouvelle publication</h3>
         <Formulaire action={ajouterPublication} bouton="Enregistrer">

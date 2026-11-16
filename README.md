@@ -42,6 +42,14 @@ Aucun mot de passe ni clé ne doit être envoyé par message : ils se saisissent
 4. **Tirage et calendrier** : lancer le tirage au sort, corriger les poules si besoin, puis générer le calendrier des poules. **Clubs et matchs** : ajuster un match (date, heure, terrain, report, annulation). Pendant un match, mettre le statut « en cours » et le score ; à la fin, « terminé », puis cocher « Résultat validé » pour que le classement se mette à jour.
 5. **Billetterie** : créer les catégories (prix, places par match) et cocher « En vente ». Les supporters réservent alors sur `/billetterie` sans payer et reçoivent un billet avec QR code (`/billet/…`, à enregistrer en image ou à s'envoyer sur WhatsApp). Le QR code du billet ne contient pas de lien : seul le scanner de l'espace pro sait le lire. Le jour du match, l'équipe, connectée à l'espace pro (compte billetterie ou administrateur, sur autant de téléphones que nécessaire), ouvre **Billetterie → Scanner les billets** : la caméra lit le QR code, l'écran indique le montant à encaisser, puis « Encaissé · faire entrer ». Un billet est réservé pour un match précis et ne sert qu'une fois (une entrée par place réservée) ; chaque match a son propre quota de places, remis à neuf pour le match suivant. Une réservation non payée garde ses places jusqu'au match et peut être annulée depuis le scanner.
 
+## Tableau d'affichage des lives (Facebook, TikTok, YouTube)
+
+La page `/live` affiche par-dessus la vidéo du live le score, le chrono, la période, les tirs au but, une annonce animée à chaque but ou carton, et les logos des partenaires. Elle lit ce que le comité saisit dans **Match en direct** : rien d'autre à faire pendant le match. Les adresses à copier sont dans l'espace pro (**Match en direct** et **Médias**, rubrique « Tableau d'affichage des lives »).
+
+- **OBS (ordinateur)** : Sources → + → Navigateur, coller l'adresse, largeur 1920, hauteur 1080 (1080 × 1920 pour le vertical). Le fond est transparent.
+- **Prism Live Studio (téléphone)** : Widgets → Web, coller l'adresse. Pour une appli sans transparence, ajouter `&fond=vert` et détourer le vert.
+- Réglages : `?format=vertical` (TikTok, stories), `?format=plein` (avant-match, mi-temps, fin), `?match=<id>` (un match précis, sinon le match en cours de la journée), `?sponsors=0`, `?demo=1` (match fictif pour régler la scène).
+
 ## Développement
 
 ```bash
