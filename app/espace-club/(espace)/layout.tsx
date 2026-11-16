@@ -21,6 +21,7 @@ export default async function EspaceClub({ children }: { children: React.ReactNo
     ["/espace-club/actualites", "Actualités"],
     ["/espace-club/joueurs", "Joueurs"],
     ["/espace-club/encadrement", "Encadrement"],
+    ["/espace-club/compositions", "Compositions"],
     ["/espace-club/mercato", "Mercato"],
     ["/espace-club/messages", nonLus ? `Messages (${nonLus})` : "Messages"],
     ["/espace-club/cartes", "Cartes"],

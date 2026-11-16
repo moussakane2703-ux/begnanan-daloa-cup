@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChronoPublic } from "@/components/ChronoMatch";
-import { Crest } from "@/components/Crest";
-import { StatutPill } from "@/components/StatutMatch";
 import { TirsAuBut } from "@/components/TirsAuBut";
-import { getClubs, getEvenements, getMatchs, getTirsAuBut, getTournoi, parId } from "@/lib/data";
-import { heure, jourCourt, lienWhatsApp } from "@/lib/format";
+import { CarteMatch } from "@/components/CarteMatch";
+import { Compositions } from "@/components/Compositions";
+import { getClubs, getCompositions, getEffectif, getEvenements, getMatchs, getTirsAuBut, getTournoi, parId } from "@/lib/data";
+import { lienWhatsApp } from "@/lib/format";
 import { EVENEMENTS } from "@/lib/types";
 import { Actualisation } from "./Actualisation";
 
@@ -31,7 +31,9 @@ export default async function PageMatch({ params }: { params: Promise<{ id: stri
   const d = await charger(id);
   if (!d) notFound();
   const { match, clubs } = d;
-  const [evenements, tirs, tournoi] = await Promise.all([getEvenements(id), getTirsAuBut(id), getTournoi()]);
+  const [evenements, tirs, tournoi, compositions, effDom, effExt] = await Promise.all([
+    getEvenements(id), getTirsAuBut(id), getTournoi(), getCompositions(id), getEffectif(match.club_domicile), getEffectif(match.club_exterieur),
+  ]);
   const durees = { mi_temps: tournoi.duree_mi_temps ?? null, prolongation: tournoi.duree_prolongation ?? null };
   const dom = clubs.get(match.club_domicile);
   const ext = clubs.get(match.club_exterieur);
@@ -42,21 +44,22 @@ export default async function PageMatch({ params }: { params: Promise<{ id: stri
     <section className="band">
       <div className="wrap" style={{ maxWidth: 720 }}>
         <Link className="small" href="/matchs">← Tous les matchs</Link>
-        <div className="card match-direct">
-          <div className="eyebrow">{match.poule ? `Poule ${match.poule}` : match.phase} · {jourCourt(match.date_heure)} à {heure(match.date_heure)} · {match.terrain}</div>
-          <div className="match-direct-score">
-            <div><Crest club={dom} size="crest" /><b>{dom?.nom}</b></div>
-            <h1 className="num">{score ? `${match.buts_domicile ?? 0} – ${match.buts_exterieur ?? 0}` : heure(match.date_heure)}</h1>
-            <div><Crest club={ext} size="crest" /><b>{ext?.nom}</b></div>
-          </div>
-          {match.tab_domicile != null && <p className="match-tab">Tirs au but : <b className="num">{match.tab_domicile} – {match.tab_exterieur}</b></p>}
-          {match.statut === "en cours" && match.periode && <p className="match-tab"><ChronoPublic chrono={match} durees={durees} /></p>}
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
-            <StatutPill statut={match.statut} />
-            {match.statut === "terminé" && !match.resultat_valide && <span className="small">Résultat provisoire</span>}
-            {match.statut === "en cours" && <Actualisation />}
-          </div>
+        <div style={{ margin: "10px 0 12px" }}>
+          <CarteMatch match={match} clubs={clubs} evenements={evenements} miTemps={tournoi.duree_mi_temps ?? null} lieu={tournoi.lieu} compositions={compositions.map((c) => c.club_id)} lienDetail={false} />
         </div>
+        {match.statut === "en cours" && (
+          <div className="card" style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
+            {match.periode && <ChronoPublic chrono={match} durees={durees} />}
+            <Actualisation />
+          </div>
+        )}
+
+        {compositions.length > 0 && (
+          <div className="card" id="compositions">
+            <h2 style={{ fontSize: "1.35rem", marginBottom: 10 }}>Compositions</h2>
+            <Compositions compositions={compositions} clubs={clubs} effectifs={{ [match.club_domicile]: effDom, [match.club_exterieur]: effExt }} ordre={[match.club_domicile, match.club_exterieur]} />
+          </div>
+        )}
 
         {tirs.length > 0 && (
           <div className="card">
