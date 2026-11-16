@@ -56,8 +56,8 @@ export default async function AfficheComposition({ params }: { params: Promise<{
           <div className="aff">
             <EnteteAffiche titre="Composition" sousTitre={`${libellePhase(match)} · ${jourCourt(match.date_heure)} · ${heure(match.date_heure)}`} />
             <div className="aff-compo-equipes">
-              <LogoAffiche club={equipe} taille={130} />
-              <div>
+              <LogoAffiche club={equipe} taille={120} />
+              <div className="aff-compo-nom">
                 <b>{equipe?.nom}</b>
                 <span>contre {adversaire?.nom}</span>
               </div>

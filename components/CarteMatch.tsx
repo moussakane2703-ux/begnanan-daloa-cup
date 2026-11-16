@@ -44,10 +44,10 @@ export function CarteMatch({
 
   return (
     <article className="cm" id={`match-${match.id}`}>
-      <header className="cm-haut">
+      <div className="cm-haut">
         <span className="cm-phase">{libellePhase(match)}</span>
         <span>{jourCourt(match.date_heure)} · {heure(match.date_heure)}</span>
-      </header>
+      </div>
 
       <div className="cm-main">
         <div className={`cm-eq${vainqueur === "dom" ? " gagne" : ""}`}>
@@ -97,7 +97,7 @@ export function CarteMatch({
         </div>
       )}
 
-      <footer className="cm-pied">
+      <div className="cm-pied">
         <span className="small">📍 {match.terrain} · {lieu}</span>
         {match.statut === "terminé" && !match.resultat_valide && <span className="small">Résultat provisoire</span>}
         <div className="cm-actions">
@@ -108,7 +108,7 @@ export function CarteMatch({
           ))}
           {match.statut === "terminé" && <Link className="btn gold sm" href={`/matchs/${match.id}/affiche/resultat`}>Affiche résultat</Link>}
         </div>
-      </footer>
+      </div>
     </article>
   );
 }
