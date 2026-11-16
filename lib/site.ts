@@ -2,10 +2,12 @@ import "server-only";
 import { headers } from "next/headers";
 
 /**
- * Nom de domaine du tournoi, avec « www » : Vercel redirige begnanandaloacup.com vers www, et Google
- * refuse d'indexer une adresse qui redirige. L'ancienne adresse begnanan-daloa-cup.vercel.app reste en service.
+ * Nom de domaine du tournoi, sans « www » : c'est l'adresse que Google connaît et qui est vérifiée dans
+ * Search Console. Dans Vercel (Settings > Domains), begnanandaloacup.com doit être l'adresse principale
+ * et www doit rediriger vers elle, jamais l'inverse : Google n'indexe pas une adresse qui redirige.
+ * L'ancienne adresse begnanan-daloa-cup.vercel.app reste en service.
  */
-const ADRESSE_OFFICIELLE = "https://www.begnanandaloacup.com";
+const ADRESSE_OFFICIELLE = "https://begnanandaloacup.com";
 
 /**
  * Adresse publique du site, pour les liens des QR codes. On vise toujours l'adresse de production :

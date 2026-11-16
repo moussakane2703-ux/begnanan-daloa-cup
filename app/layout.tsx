@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: { default: "BÊGNANAN DALOA CUP", template: "%s · BÊGNANAN DALOA CUP" },
   description: DESCRIPTION,
-  // Adresse de référence de chaque page (www.begnanandaloacup.com) : Google ne garde qu'un exemplaire
+  // Adresse de référence de chaque page (begnanandaloacup.com) : Google ne garde qu'un exemplaire
   // même quand la page est aussi ouverte depuis begnanan-daloa-cup.vercel.app.
   alternates: { canonical: "./" },
   icons: { icon: "/logo-small.webp" },
