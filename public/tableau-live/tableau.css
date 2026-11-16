@@ -1,0 +1,134 @@
+/* Tableau d'affichage des lives : couleurs du logo (vert, jaune, noir). Scène dessinée en 1920 × 1080
+   (ou 1080 × 1920 en vertical) puis mise à l'échelle de la source OBS / Prism. */
+:root{
+  --vert:#11802c;--vert-fonce:#0b4a1b;--nuit:#07120a;--jaune:#f7d417;--craie:#f3f1ea;--rouge:#d63b2b;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Figtree",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:transparent}
+body{font-family:var(--f-body);color:var(--craie);-webkit-font-smoothing:antialiased}
+body.fond-vert{background:#00b140}
+body.fond-noir{background:#000}
+/* Fond à détourer : rien de vert vif dans le tableau, sinon il serait effacé avec le fond. */
+.fond-vert .periode,.fond-vert .bug-logo{background:var(--vert-fonce)}
+.num{font-variant-numeric:tabular-nums}
+.scene{position:fixed;inset:0}
+.stage{position:absolute;transform-origin:0 0}
+.cache{opacity:0!important;transform:translateY(-12px)!important}
+
+/* ---------- Blasons ---------- */
+.blason{display:grid;place-items:center;border-radius:50%;background:#fff;overflow:hidden;flex:none;
+  font-family:var(--f-display);font-weight:900;color:#fff;letter-spacing:.02em}
+.blason img{width:86%;height:86%;object-fit:contain}
+.blason.petit{width:46px;height:46px;font-size:15px;box-shadow:0 0 0 2px rgb(255 255 255 / .85)}
+.blason.moyen{width:96px;height:96px;font-size:28px;box-shadow:0 0 0 4px rgb(255 255 255 / .25)}
+.blason.grand{width:250px;height:250px;font-size:64px;box-shadow:0 0 0 8px rgb(247 212 23 / .9),0 30px 60px -20px rgb(0 0 0 / .6)}
+
+/* ---------- Bandeau du score ---------- */
+.bug{position:absolute;left:48px;top:40px;transition:opacity .5s,transform .5s;filter:drop-shadow(0 10px 24px rgb(0 0 0 / .45))}
+.bug-ligne{display:flex;align-items:stretch;height:72px;border-radius:14px;overflow:hidden;background:var(--nuit)}
+.bug-logo{width:72px;height:72px;padding:9px;background:var(--vert);object-fit:contain}
+.bug-equipe{position:relative;display:flex;align-items:center;gap:12px;padding:0 18px;min-width:170px;background:linear-gradient(180deg,#14261a,#0b170e)}
+.bug-equipe.ext{flex-direction:row-reverse}
+.bug-equipe .sigle{font-family:var(--f-display);font-weight:900;font-size:40px;letter-spacing:.04em;line-height:1}
+.bug-equipe .couleur{position:absolute;left:0;right:0;bottom:0;height:5px}
+.bug-score{display:flex;align-items:center;justify-content:center;gap:10px;min-width:150px;padding:0 16px;background:var(--jaune);color:#111;
+  font-family:var(--f-display);font-weight:900;font-size:52px;line-height:1}
+.bug-score .tiret{font-size:36px;opacity:.55}
+.bug-score.avant{min-width:64px;padding:0}
+.bug-score.avant .tiret{font-size:30px}
+.bug-score.eclat{animation:eclat 1.4s ease-out}
+@keyframes eclat{0%{background:#fff;transform:scale(1.15)}40%{background:var(--jaune);transform:scale(1)}100%{background:var(--jaune)}}
+.bug-temps{display:flex;align-items:center;gap:8px;padding:0 20px;min-width:150px;justify-content:center;background:var(--vert-fonce);font-family:var(--f-mono)}
+.bug-temps b{font-size:34px;font-weight:700;letter-spacing:.02em}
+.bug-temps.texte b{font-family:var(--f-display);font-weight:900;font-size:36px;letter-spacing:.05em}
+.bug-temps.arrete b{opacity:.65}
+.bug-temps .plus{font-family:var(--f-display);font-weight:900;font-size:26px;color:#111;background:var(--jaune);border-radius:6px;padding:0 6px}
+.bug-temps .plus:empty{display:none}
+.bug-sous{display:flex;align-items:center;gap:16px;margin:6px 0 0 72px;height:34px}
+.periode{display:inline-block;padding:4px 14px;border-radius:0 0 10px 10px;background:var(--vert);font-weight:800;font-size:19px;letter-spacing:.12em;text-transform:uppercase}
+.periode:empty{display:none}
+.bug-tab{display:flex;align-items:center;gap:12px;padding:3px 14px;border-radius:10px;background:rgb(7 18 10 / .9)}
+.bug-tab:empty{display:none}
+.bug-tab b{font-family:var(--f-display);font-weight:900;font-size:24px;color:var(--jaune)}
+.tirs{display:inline-flex;gap:6px}
+.tirs i{width:16px;height:16px;border-radius:50%;border:2px solid rgb(243 241 234 / .55)}
+.tirs i.ok{background:#3fd36b;border-color:#3fd36b}
+.tirs i.rate{background:var(--rouge);border-color:var(--rouge);position:relative}
+.tirs i.rate::after{content:"";position:absolute;inset:5px -3px;background:#fff;transform:rotate(-45deg);height:2px;top:5px}
+
+/* ---------- Annonce but / carton ---------- */
+.popup{position:absolute;left:50%;bottom:90px;transform:translate(-50%,40px);opacity:0;transition:opacity .45s,transform .6s cubic-bezier(.2,.9,.25,1.2)}
+.popup.visible{opacity:1;transform:translate(-50%,0)}
+.popup-carte{display:flex;align-items:center;gap:26px;padding:20px 34px 20px 22px;min-width:820px;border-radius:22px;background:var(--nuit);
+  box-shadow:0 30px 60px -20px rgb(0 0 0 / .7);border-left:12px solid var(--jaune)}
+.popup.jaune .popup-carte{border-left-color:#f2b705}
+.popup.rouge .popup-carte{border-left-color:var(--rouge)}
+.popup-texte{flex:1;min-width:0}
+.popup-titre{font-family:var(--f-display);font-weight:900;text-transform:uppercase;font-size:76px;line-height:.9;color:var(--jaune);letter-spacing:.02em}
+.popup.but .popup-titre{animation:vibre .9s ease-out .3s}
+.popup.jaune .popup-titre{color:#f2b705;font-size:58px}
+.popup.rouge .popup-titre{color:#ff6a55;font-size:58px}
+@keyframes vibre{0%,100%{transform:none}20%{transform:scale(1.12) rotate(-2deg)}40%{transform:scale(1.04) rotate(1.5deg)}}
+.popup-nom{font-weight:800;font-size:40px;line-height:1.15;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.popup-detail{font-weight:700;font-size:22px;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-top:2px}
+.popup-minute{font-family:var(--f-display);font-weight:900;font-size:64px;color:#111;background:var(--jaune);border-radius:16px;padding:6px 18px;line-height:1}
+.popup.jaune .popup-minute{background:#f2b705}
+.popup.rouge .popup-minute{background:var(--rouge);color:#fff}
+
+/* ---------- Partenaire en bas à droite ---------- */
+.sponsor{position:absolute;right:48px;bottom:48px;display:flex;flex-direction:column;align-items:center;gap:6px;width:250px;padding:12px 14px 10px;
+  border-radius:16px;background:rgb(7 18 10 / .88);transition:opacity .5s,transform .5s;box-shadow:0 14px 30px -12px rgb(0 0 0 / .6)}
+.sponsor-label{font-weight:800;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--jaune)}
+.sponsor-cadre{width:100%;height:110px;border-radius:10px;background:#fff;display:grid;place-items:center;padding:8px}
+.sponsor-cadre img{display:block;max-width:100%;max-height:94px;width:auto;height:auto;object-fit:contain}
+.sponsor-nom{font-weight:700;font-size:16px;text-align:center;line-height:1.2;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Vertical (TikTok, stories) : score centré sous la barre de l'appli ---------- */
+.format-vertical .bug{left:50%;top:190px;transform:translateX(-50%) scale(1.12);transform-origin:50% 0}
+.format-vertical .bug.cache{transform:translateX(-50%) scale(1.12) translateY(-12px)!important}
+.format-vertical .bug-sous{margin-left:0;justify-content:center}
+.format-vertical .bug-logo{display:none}
+.format-vertical .bug-equipe{min-width:0;padding:0 14px}
+.format-vertical .bug-temps{min-width:128px;padding:0 14px}
+.format-vertical .popup{bottom:auto;top:58%}
+.format-vertical .popup-carte{min-width:0;width:960px}
+.format-vertical .sponsor{right:auto;left:50%;bottom:auto;top:340px;transform:translateX(-50%);width:220px;flex-direction:row;padding:8px 10px;gap:10px}
+.format-vertical .sponsor.cache{transform:translateX(-50%) translateY(-12px)!important}
+.format-vertical .sponsor-label,.format-vertical .sponsor-nom{display:none}
+.format-vertical .sponsor-cadre{height:84px}
+.format-vertical .sponsor-cadre img{max-height:68px}
+
+/* ---------- Écran plein ---------- */
+.plein{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:56px 80px 40px;
+  background:radial-gradient(1200px 700px at 50% 45%,#16903a 0%,var(--vert-fonce) 55%,var(--nuit) 100%)}
+.plein::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;
+  background:repeating-linear-gradient(90deg,transparent 0 120px,rgb(255 255 255 / .5) 120px 240px)}
+.plein>*{position:relative}
+.plein-tete{display:flex;align-items:center;gap:26px;align-self:flex-start}
+.plein-logo{width:120px;height:120px;object-fit:contain}
+.plein-tournoi{font-family:var(--f-display);font-weight:900;font-size:58px;letter-spacing:.03em;line-height:1}
+.plein-phase{font-weight:800;font-size:24px;letter-spacing:.14em;text-transform:uppercase;color:var(--jaune);margin-top:6px}
+.plein-etat{margin-top:34px;padding:10px 30px;border-radius:99px;background:var(--jaune);color:#111;font-family:var(--f-display);font-weight:900;
+  font-size:44px;text-transform:uppercase;letter-spacing:.06em}
+.plein-etat:empty{display:none}
+.plein-affiche{flex:1;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;align-content:center;gap:40px;width:100%}
+.plein-equipe{display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
+.plein-nom{font-family:var(--f-display);font-weight:900;font-size:64px;text-transform:uppercase;line-height:.95;max-width:560px}
+.buteurs{list-style:none;margin:0;padding:0;font-weight:700;font-size:26px;line-height:1.45;opacity:.9}
+.plein-centre{display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:20px;min-height:250px;justify-content:center}
+.plein-score{font-family:var(--f-display);font-weight:900;font-size:220px;line-height:.85;color:var(--jaune);text-shadow:0 12px 40px rgb(0 0 0 / .4)}
+.plein-heure{font-family:var(--f-display);font-weight:900;font-size:160px;line-height:.9;color:var(--jaune)}
+.plein-tab{font-weight:800;font-size:34px;letter-spacing:.06em}
+.plein-horloge{font-family:var(--f-mono);font-weight:700;font-size:54px;padding:4px 22px;border-radius:12px;background:rgb(0 0 0 / .35)}
+.plein-vide{flex:1;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:90px;text-transform:uppercase;text-align:center}
+.plein-partenaires{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
+.plein-merci{font-weight:800;font-size:20px;letter-spacing:.2em;text-transform:uppercase;color:var(--jaune)}
+.plein-logos{display:grid;grid-template-columns:repeat(8,1fr);gap:16px;width:100%;animation:apparait .8s ease-out}
+@keyframes apparait{from{opacity:0;transform:translateY(10px)}}
+.plein-logo-partenaire{height:104px;border-radius:12px;background:#fff;display:grid;place-items:center;padding:10px}
+.plein-logo-partenaire img{display:block;max-width:100%;max-height:84px;width:auto;height:auto;object-fit:contain}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
