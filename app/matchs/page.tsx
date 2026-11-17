@@ -27,7 +27,7 @@ export default async function Matchs() {
       <div className="wrap" id="phases-finales" style={{ marginTop: 56, scrollMarginTop: 80 }}>
         <div className="head">
           <div>
-            <div className="eyebrow">Du 16 décembre au 1er janvier</div>
+            <div className="eyebrow">Du 17 décembre au 1er janvier</div>
             <h2 className="h2">Tableau des phases finales</h2>
             <p>Les 2 premiers de chaque poule sont qualifiés pour les 8es de finale. Un 1er et un 2e de la même poule ne peuvent se retrouver qu&apos;en finale.</p>
           </div>
