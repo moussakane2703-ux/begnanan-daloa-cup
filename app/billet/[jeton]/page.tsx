@@ -42,8 +42,19 @@ const CLASSE: Record<StatutBillet, string> = {
   "à payer": "attente", "paiement en attente": "attente", payé: "paye", utilisé: "utilise", annulé: "annule",
 };
 
-const lire = async (jeton: string) =>
-  ((await createPublicClient().rpc("billets_par_jeton", { p_jeton: jeton })).data as Billet[] | null) ?? [];
+async function lire(jeton: string): Promise<Billet[]> {
+  const db = createPublicClient();
+  const [{ data }, { data: p }] = await Promise.all([
+    db.rpc("billets_par_jeton", { p_jeton: jeton }),
+    db.rpc("paiement_par_jeton", { p_jeton: jeton }),
+  ]);
+  const paiement = (p as { moyen_paiement: string | null; wave_lien: string | null }[] | null)?.[0];
+  return ((data as Omit<Billet, "moyen_paiement" | "wave_lien">[] | null) ?? []).map((b) => ({
+    ...b,
+    moyen_paiement: paiement?.moyen_paiement ?? null,
+    wave_lien: paiement?.wave_lien ?? null,
+  }));
+}
 
 /**
  * Paiement Wave pas encore enregistré : on demande directement à Wave où en est la session (le webhook

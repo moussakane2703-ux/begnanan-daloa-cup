@@ -203,17 +203,15 @@ as $$
     else 'à payer' end;
 $$;
 
-drop function if exists billets_par_jeton(text);
-create function billets_par_jeton(p_jeton text)
+-- Même colonnes qu'avant (create or replace, sans suppression) : seul le statut change.
+create or replace function billets_par_jeton(p_jeton text)
 returns table (groupe boolean, reference text, numero int, quantite int, jeton text, statut text,
   prix_unitaire_fcfa int, nom_acheteur text, categorie text, date_heure timestamptz, terrain text, phase text,
-  domicile text, exterieur text, utilise_le timestamptz, moyen_paiement text, wave_lien text)
+  domicile text, exterieur text, utilise_le timestamptz)
 language sql stable security definer set search_path = public
 as $$
   select co.jeton = p_jeton, co.reference, b.numero, co.quantite, b.jeton, prive.statut_billet(co, b),
-    co.prix_unitaire_fcfa, co.nom_acheteur, cb.nom, m.date_heure, m.terrain, m.phase, cd.nom, ce.nom, b.utilise_le,
-    co.moyen_paiement,
-    case when co.statut = 'en attente' and co.wave_expire_le > now() then co.wave_lien end
+    co.prix_unitaire_fcfa, co.nom_acheteur, cb.nom, m.date_heure, m.terrain, m.phase, cd.nom, ce.nom, b.utilise_le
   from billets b
   join commandes co on co.id = b.commande_id
   join categories_billet cb on cb.id = co.categorie_id
@@ -223,8 +221,19 @@ as $$
   where co.jeton = p_jeton or b.jeton = p_jeton
   order by b.numero;
 $$;
-revoke execute on function billets_par_jeton(text) from public;
-grant execute on function billets_par_jeton(text) to anon, authenticated;
+
+-- Moyen de paiement de la réservation et lien de paiement Wave tant que la session est ouverte.
+create or replace function paiement_par_jeton(p_jeton text)
+returns table (moyen_paiement text, wave_lien text)
+language sql stable security definer set search_path = public
+as $$
+  select co.moyen_paiement, case when co.statut = 'en attente' and co.wave_expire_le > now() then co.wave_lien end
+  from commandes co
+  where co.jeton = p_jeton or exists (select 1 from billets b where b.commande_id = co.id and b.jeton = p_jeton)
+  limit 1;
+$$;
+revoke execute on function paiement_par_jeton(text) from public;
+grant execute on function paiement_par_jeton(text) to anon, authenticated;
 
 create or replace function controle_billet_unique(p_code text)
 returns table (jeton text, reference text, numero int, quantite int, statut text, prix_unitaire_fcfa int, nom_acheteur text,
