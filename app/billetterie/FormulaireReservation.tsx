@@ -18,8 +18,10 @@ export interface ChoixCategorie {
 const fcfa = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
 
 /** Formulaire de réservation : match, catégorie, nombre de places, nom et téléphone. */
-export function FormulaireReservation({ matchs, categories, places }: {
+export function FormulaireReservation({ matchs, categories, places, wave }: {
   matchs: ChoixMatch[];
+  /** Paiement en ligne avec Wave au moment de la réservation (sinon : paiement sur place). */
+  wave: boolean;
   categories: ChoixCategorie[];
   /** Places restantes par « match:catégorie ». */
   places: Record<string, number>;
@@ -85,12 +87,21 @@ export function FormulaireReservation({ matchs, categories, places }: {
       </div>
 
       <div className="resa-total">
-        <span>À payer sur place</span>
+        <span>{wave ? "À payer avec Wave" : "À payer sur place"}</span>
         <b className="num">{choisie && max ? fcfa(choisie.prix * nombre) : "—"}</b>
       </div>
       {etat.erreur && <p className="form-err" role="alert">{etat.erreur}</p>}
-      <button className="btn primary" disabled={envoi || !choisie || !max}>{envoi ? "Réservation…" : "Réserver mon billet"}</button>
-      <p className="small">Aucun paiement en ligne : vous recevez un billet avec QR code. Montrez-le à l&apos;entrée du terrain et payez sur place.</p>
+      <button className="btn primary" disabled={envoi || !choisie || !max}>
+        {envoi ? (wave ? "Ouverture de Wave…" : "Réservation…") : wave ? "Réserver et payer avec Wave" : "Réserver mon billet"}
+      </button>
+      {wave ? (
+        <p className="small">
+          Vous êtes envoyé sur Wave pour payer (30 minutes pour le faire). Dès que Wave confirme le paiement, vos billets avec QR code
+          s&apos;affichent : montrez-les à l&apos;entrée du terrain, il n&apos;y a plus rien à payer.
+        </p>
+      ) : (
+        <p className="small">Aucun paiement en ligne : vous recevez un billet avec QR code. Montrez-le à l&apos;entrée du terrain et payez sur place.</p>
+      )}
     </form>
   );
 }

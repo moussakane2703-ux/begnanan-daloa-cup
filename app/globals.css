@@ -817,6 +817,7 @@ a.partenaire:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
 .billet-statut.s-paye{background:#dff2e6;color:#14532d}
 .billet-statut.s-utilise,.billet-statut.s-annule{background:#ebe8df;color:#5c665e}
 .billet.annule .billet-qr{opacity:.15}
+.billet-qr-attente{aspect-ratio:1;display:grid;place-items:center;text-align:center;padding:18px;border:2px dashed currentColor;border-radius:12px;opacity:.7}
 .billet-actions{display:grid;gap:8px}
 .billet-actions .btn{justify-content:center}
 .billet-aide ol{margin:0;padding-left:18px;display:grid;gap:4px}

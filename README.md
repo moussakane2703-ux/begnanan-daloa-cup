@@ -15,7 +15,7 @@ Aucun mot de passe ni clé ne doit être envoyé par message : ils se saisissent
 ### 1. Base de données (Supabase, offre gratuite)
 
 1. Créer un compte sur [supabase.com](https://supabase.com) puis un projet (région la plus proche : Europe).
-2. Dans **SQL Editor**, coller tout le fichier [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql) et cliquer sur **Run**. Si la base a été créée avec une version précédente de ce fichier, exécuter aussi [`0002_correctif_security_definer.sql`](supabase/migrations/0002_correctif_security_definer.sql). Exécuter ensuite [`0003_clubs_licences.sql`](supabase/migrations/0003_clubs_licences.sql) (inscription des clubs et licences), puis [`0004_encadrement_mercato_alertes.sql`](supabase/migrations/0004_encadrement_mercato_alertes.sql) (coach et adjoint, mercato, annonces), puis [`0005_profil_photos_messages.sql`](supabase/migrations/0005_profil_photos_messages.sql) (espace club, photos, messages ; crée aussi l'espace de stockage « photos », gratuit jusqu'à 1 Go)., puis [`0006_naissance_facultative.sql`](supabase/migrations/0006_naissance_facultative.sql) (date de naissance des joueurs facultative). Les fichiers suivants du dossier `supabase/migrations` s'exécutent ensuite dans l'ordre, jusqu'à [`0016_cartes_match.sql`](supabase/migrations/0016_cartes_match.sql) (cartes de match : mi-temps, Homme du match, compositions).
+2. Dans **SQL Editor**, coller tout le fichier [`supabase/migrations/0001_schema.sql`](supabase/migrations/0001_schema.sql) et cliquer sur **Run**. Si la base a été créée avec une version précédente de ce fichier, exécuter aussi [`0002_correctif_security_definer.sql`](supabase/migrations/0002_correctif_security_definer.sql). Exécuter ensuite [`0003_clubs_licences.sql`](supabase/migrations/0003_clubs_licences.sql) (inscription des clubs et licences), puis [`0004_encadrement_mercato_alertes.sql`](supabase/migrations/0004_encadrement_mercato_alertes.sql) (coach et adjoint, mercato, annonces), puis [`0005_profil_photos_messages.sql`](supabase/migrations/0005_profil_photos_messages.sql) (espace club, photos, messages ; crée aussi l'espace de stockage « photos », gratuit jusqu'à 1 Go)., puis [`0006_naissance_facultative.sql`](supabase/migrations/0006_naissance_facultative.sql) (date de naissance des joueurs facultative). Les fichiers suivants du dossier `supabase/migrations` s'exécutent ensuite dans l'ordre, jusqu'à [`0018_paiement_wave.sql`](supabase/migrations/0018_paiement_wave.sql) (paiement des billets avec Wave).
 3. Dans **Authentication → Users → Add user**, créer le premier compte administrateur (e-mail + mot de passe, cocher « Auto confirm »).
 4. Dans **SQL Editor**, donner le rôle administrateur à ce compte :
    ```sql
@@ -67,9 +67,20 @@ Sans variables Supabase, le site s'affiche quand même avec des listes vides, ce
 
 Sans réglage, chaque annonce a un bouton « Partager sur WhatsApp » (groupe, chaîne ou liste de diffusion du comité). Pour un envoi direct à chaque abonné, il faut un compte WhatsApp Business Platform de Meta (numéro dédié, modèle de message approuvé avec deux variables : titre et texte ; envoi payant à la conversation), puis ajouter dans Vercel : `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_TEMPLATE` (nom du modèle) et, si besoin, `WHATSAPP_TEMPLATE_LANG` (par défaut `fr`).
 
+## Paiement des billets avec Wave Business
+
+Avec un compte Wave Business, les supporters paient leurs billets sur Wave au moment de la réservation : le site ouvre une session de paiement Wave (application Wave sur téléphone, QR code à scanner sur ordinateur), et les billets avec QR code ne s'affichent qu'une fois le paiement confirmé par Wave. À l'entrée, le scanner indique « Payé · faire entrer » : rien à encaisser. Un billet Wave non payé est refusé à l'entrée. Les places d'une réservation non payée sont gardées 30 minutes (durée de la session Wave), puis libérées.
+
+1. Dans **SQL Editor** de Supabase, exécuter [`supabase/migrations/0018_paiement_wave.sql`](supabase/migrations/0018_paiement_wave.sql) (après 0017).
+2. Dans le portail **Wave Business → Développeurs**, créer une clé API avec accès à l’API Checkout. Ne pas activer la signature des requêtes, sauf besoin : dans ce cas, noter aussi le secret de signature.
+3. Toujours dans le portail, ajouter un webhook vers `https://www.begnanandaloacup.com/api/wave/webhook` (événements de checkout) et noter son secret (`wave_sn_WHS_…`, affiché une seule fois).
+4. Dans **Vercel → Settings → Environment Variables**, ajouter `WAVE_API_KEY`, `WAVE_WEBHOOK_SECRET` et, seulement si la signature des requêtes est activée, `WAVE_SIGNING_SECRET`. Redéployer.
+
+Sans `WAVE_API_KEY`, la billetterie fonctionne comme avant (paiement sur place). Si le webhook tarde, la page du billet vérifie elle-même auprès de Wave au retour du supporter. Un paiement Wave arrive sur le compte Wave Business du tournoi ; les frais Wave sont ceux du contrat marchand.
+
 ## Prochaines étapes
 
-- Paiement en ligne par mobile money (Orange Money, MTN MoMo, Moov Money, Wave) via CinetPay, en plus du paiement sur place : nécessite un compte marchand CinetPay au nom du comité.
+- Paiement par Orange Money, MTN MoMo et Moov Money (par exemple via CinetPay), en plus de Wave et du paiement sur place.
 - Envoi automatique des alertes WhatsApp (WhatsApp Business).
 - Envoi des photos directement depuis l'espace médias (aujourd'hui : lien vers l'image).
 

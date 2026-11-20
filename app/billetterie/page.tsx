@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCategories, getClubs, getMatchs, getPlacesMatchs, parId } from "@/lib/data";
 import { fcfa, heure, jourCourt } from "@/lib/format";
+import { waveConfigure } from "@/lib/wave";
 import { FormulaireReservation } from "./FormulaireReservation";
 import { MesBillets } from "./MesBillets";
 import { RetrouverBillet } from "./RetrouverBillet";
@@ -8,7 +9,7 @@ import { RetrouverBillet } from "./RetrouverBillet";
 export const revalidate = 30;
 export const metadata: Metadata = {
   title: "Billetterie",
-  description: "Réservez votre place pour le Bêgnanan Daloa Cup : billet avec QR code, paiement sur place à l'entrée du terrain.",
+  description: "Réservez votre place pour le Bêgnanan Daloa Cup : billet avec QR code, paiement avec Wave ou sur place.",
 };
 
 const TEINTES = ["var(--pitch)", "var(--info)", "var(--gold)", "#8e3b8e", "var(--earth)"];
@@ -35,7 +36,11 @@ export default async function Billetterie() {
           <div>
             <div className="eyebrow">Billetterie</div>
             <h1 className="h2">Réservez votre place</h1>
-            <p>Réservez en ligne, gratuitement. Vous recevez un billet avec QR code : montrez-le à l&apos;entrée du terrain, l&apos;équipe le scanne et vous payez sur place.</p>
+            {waveConfigure ? (
+              <p>Réservez et payez en ligne avec Wave. Dès le paiement confirmé, vous recevez vos billets avec QR code : montrez-les à l&apos;entrée du terrain, l&apos;équipe les scanne et vous entrez.</p>
+            ) : (
+              <p>Réservez en ligne, gratuitement. Vous recevez un billet avec QR code : montrez-le à l&apos;entrée du terrain, l&apos;équipe le scanne et vous payez sur place.</p>
+            )}
           </div>
         </div>
 
@@ -53,6 +58,7 @@ export default async function Billetterie() {
                 }))}
                 categories={categories.map((c) => ({ id: c.id, nom: c.nom, prix: c.prix_fcfa, description: c.description }))}
                 places={restantes}
+                wave={waveConfigure}
               />
             </div>
             <div className="tk-grid">
@@ -61,7 +67,7 @@ export default async function Billetterie() {
                   <div><span className="eyebrow" style={{ color: "inherit" }}>Catégorie</span><h3>{c.nom}</h3></div>
                   <div className="tk-price num">{c.prix_fcfa.toLocaleString("fr-FR")}<small> FCFA</small></div>
                   {c.description && <p className="small">{c.description}</p>}
-                  <p className="small">{c.places_par_match} places par match · à payer sur place</p>
+                  <p className="small">{c.places_par_match} places par match · {waveConfigure ? "paiement Wave" : "à payer sur place"}</p>
                 </article>
               ))}
             </div>

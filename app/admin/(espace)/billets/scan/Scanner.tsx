@@ -211,7 +211,7 @@ function Resultat({ resultat, envoi, confirmerAnnulation, setConfirmerAnnulation
       </div>
     );
   }
-  const refuse = b.statut === "annulé" || b.statut === "utilisé";
+  const refuse = b.statut === "annulé" || b.statut === "utilisé" || b.statut === "paiement en attente";
   const paye = b.statut === "payé";
   const etat = refuse ? "s-refus" : paye ? "s-ok" : "s-payer";
   const autreJour = jour(b.date_heure) !== jour(new Date());
@@ -220,7 +220,7 @@ function Resultat({ resultat, envoi, confirmerAnnulation, setConfirmerAnnulation
   return (
     <div className={`scan-res ${etat}`} role="status">
       <div className="scan-verdict">
-        {b.statut === "annulé" ? "Billet annulé" : b.statut === "utilisé" ? "Déjà utilisé" : paye ? "Payé · faire entrer" : `À encaisser : ${fcfa(b.prix_unitaire_fcfa)}`}
+        {b.statut === "annulé" ? "Billet annulé" : b.statut === "utilisé" ? "Déjà utilisé" : b.statut === "paiement en attente" ? "Non payé · Wave pas confirmé" : paye ? "Payé · faire entrer" : `À encaisser : ${fcfa(b.prix_unitaire_fcfa)}`}
       </div>
       {resultat.ok && <p className="scan-msg">{resultat.ok}</p>}
       {resultat.erreur && <p className="scan-msg err">{resultat.erreur}</p>}
@@ -234,6 +234,7 @@ function Resultat({ resultat, envoi, confirmerAnnulation, setConfirmerAnnulation
         {b.quantite > 1 && <div><dt>Réservation</dt><dd className="num">{b.entrees_commande} / {b.quantite} entrés</dd></div>}
       </dl>
       {autreJour && !refuse && <p className="scan-alerte">Attention : ce billet est pour un autre jour ({quand(b.date_heure)}).</p>}
+      {b.statut === "paiement en attente" && <p className="scan-alerte">Le supporter n&apos;a pas fini de payer avec Wave. Il peut payer sur son téléphone (bouton « Payer avec Wave » sur son billet), puis vous rescannez.</p>}
       {b.statut === "utilisé" && b.utilise_le && <p className="scan-alerte">Ce billet est déjà entré à {heure(b.utilise_le)}.</p>}
 
       {!refuse && (
