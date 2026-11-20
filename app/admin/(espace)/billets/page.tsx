@@ -26,7 +26,7 @@ export default async function AdminBillets() {
   const db = await createClient();
   const [{ data: categories }, { data: commandes }, { data: matchs }, { data: clubs }] = await Promise.all([
     db.from("categories_billet").select("*").order("ordre"),
-    db.from("commandes").select("reference, nom_acheteur, telephone, quantite, total_fcfa, statut, entrees_validees, cree_le").order("cree_le", { ascending: false }).limit(100),
+    db.from("commandes").select("reference, nom_acheteur, telephone, quantite, total_fcfa, statut, moyen_paiement, entrees_validees, cree_le").order("cree_le", { ascending: false }).limit(100),
     db.from("matchs").select("id, date_heure, club_domicile, club_exterieur, terrain, statut, reservation_ouverte").in("statut", ["programmé", "en cours"]).order("date_heure"),
     db.from("clubs").select("id, nom"),
   ]);
@@ -36,9 +36,10 @@ export default async function AdminBillets() {
     const j = jourCourt(m.date_heure);
     parJour.set(j, [...(parJour.get(j) ?? []), m]);
   }
-  const liste = (commandes ?? []) as { reference: string; nom_acheteur: string; telephone: string; quantite: number; total_fcfa: number; statut: StatutCommande; entrees_validees: number }[];
+  const liste = (commandes ?? []) as { reference: string; nom_acheteur: string; telephone: string; quantite: number; total_fcfa: number; statut: StatutCommande; moyen_paiement: string | null; entrees_validees: number }[];
   const actives = liste.filter((c) => c.statut === "en attente" || c.statut === "payée");
   const encaisse = liste.filter((c) => c.statut === "payée").reduce((t, c) => t + c.total_fcfa, 0);
+  const parWave = liste.filter((c) => c.statut === "payée" && c.moyen_paiement === "wave").reduce((t, c) => t + c.total_fcfa, 0);
 
   return (
     <>
@@ -103,7 +104,7 @@ export default async function AdminBillets() {
         <h3 style={{ marginBottom: 12 }}>Dernières réservations</h3>
         {liste.length > 0 && (
           <p className="small" style={{ marginBottom: 10 }}>
-            {actives.reduce((t, c) => t + c.quantite, 0)} places réservées ou payées · {liste.reduce((t, c) => t + c.entrees_validees, 0)} entrées · {fcfa(encaisse)} encaissés (100 dernières réservations)
+            {actives.reduce((t, c) => t + c.quantite, 0)} places réservées ou payées · {liste.reduce((t, c) => t + c.entrees_validees, 0)} entrées · {fcfa(encaisse)} encaissés{parWave ? `, dont ${fcfa(parWave)} par Wave` : ""} (100 dernières réservations)
           </p>
         )}
         {liste.length ? (
@@ -114,7 +115,7 @@ export default async function AdminBillets() {
                 {liste.map((c) => (
                   <tr key={c.reference}>
                     <td className="mono">{c.reference}</td><td>{c.nom_acheteur}</td><td className="mono">{c.telephone}</td><td className="n">{c.quantite}</td>
-                    <td className="n">{fcfa(c.total_fcfa)}</td><td>{libelleStatut(c.statut)}</td><td className="n">{c.entrees_validees}/{c.quantite}</td>
+                    <td className="n">{fcfa(c.total_fcfa)}</td><td>{libelleStatut(c.statut, c.moyen_paiement)}</td><td className="n">{c.entrees_validees}/{c.quantite}</td>
                   </tr>
                 ))}
               </tbody>

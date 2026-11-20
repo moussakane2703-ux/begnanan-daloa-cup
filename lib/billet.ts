@@ -2,15 +2,22 @@
 
 export type StatutCommande = "en attente" | "payée" | "échouée" | "annulée";
 
-/** Libellé affiché d'une commande : « en attente » veut dire « réservée, à payer sur place ». */
-export const libelleStatut = (s: StatutCommande) =>
-  s === "en attente" ? "Réservé · à payer sur place" : s === "payée" ? "Payé" : "Annulé";
+/**
+ * Libellé affiché d'une commande. « en attente » veut dire « réservée, à payer sur place », ou, pour Wave,
+ * « paiement pas encore confirmé » ; « échouée » est un paiement Wave qui n'a pas abouti.
+ */
+export const libelleStatut = (s: StatutCommande, moyen?: string | null) => {
+  const wave = moyen === "wave";
+  if (s === "en attente") return wave ? "Paiement Wave en attente" : "Réservé · à payer sur place";
+  if (s === "payée") return wave ? "Payé · Wave" : "Payé";
+  return s === "échouée" ? "Paiement non abouti" : "Annulé";
+};
 
 const JETON = /^[0-9a-f]{32}$/i;
 const REFERENCE = /^BDC-?([A-Z0-9]{6})(?:-(\d{1,2}))?$/i;
 
 /** Statut d'un billet (une place) : chaque billet se paie et se valide séparément à l'entrée. */
-export type StatutBillet = "à payer" | "payé" | "utilisé" | "annulé";
+export type StatutBillet = "à payer" | "paiement en attente" | "payé" | "utilisé" | "annulé";
 
 /** Référence d'un billet : celle de la réservation suivie de son numéro (BDC-XXXXXX-2). */
 export const referenceBillet = (reference: string, numero: number, quantite: number) =>

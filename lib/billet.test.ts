@@ -38,4 +38,7 @@ test("un autre QR code n'est pas un billet", () => {
 test("libellés des statuts", () => {
   assert.equal(libelleStatut("en attente"), "Réservé · à payer sur place");
   assert.equal(libelleStatut("payée"), "Payé");
+  assert.equal(libelleStatut("en attente", "wave"), "Paiement Wave en attente");
+  assert.equal(libelleStatut("payée", "wave"), "Payé · Wave");
+  assert.equal(libelleStatut("échouée", "wave"), "Paiement non abouti");
 });
