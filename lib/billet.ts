@@ -39,3 +39,48 @@ export function codeDuBillet(lu: string): string | null {
 }
 
 export const estJeton = (s: string) => JETON.test(s);
+
+/** Un billet réservé (une place), tel que le lit l'espace pro pour le bilan de la billetterie. */
+export interface BilletReserve {
+  match_id: string;
+  categorie_id: string;
+  paye: boolean;
+  entre: boolean;
+}
+
+/** Compteurs d'un groupe de billets réservés. */
+export interface Compteurs {
+  reserves: number;
+  payes: number;
+  aPayer: number;
+  entres: number;
+}
+
+const zero = (): Compteurs => ({ reserves: 0, payes: 0, aPayer: 0, entres: 0 });
+const compter = (c: Compteurs, b: BilletReserve) => {
+  c.reserves += 1;
+  if (b.paye) c.payes += 1;
+  else c.aPayer += 1;
+  if (b.entre) c.entres += 1;
+};
+
+/**
+ * Bilan des tickets réservés : total, par catégorie et par match (puis par catégorie dans chaque match).
+ * Les billets des réservations annulées ne doivent pas être passés.
+ */
+export function bilanReservations(billets: BilletReserve[]) {
+  const total = zero();
+  const parCategorie = new Map<string, Compteurs>();
+  const parMatch = new Map<string, { total: Compteurs; parCategorie: Map<string, Compteurs> }>();
+  for (const b of billets) {
+    compter(total, b);
+    if (!parCategorie.has(b.categorie_id)) parCategorie.set(b.categorie_id, zero());
+    compter(parCategorie.get(b.categorie_id)!, b);
+    if (!parMatch.has(b.match_id)) parMatch.set(b.match_id, { total: zero(), parCategorie: new Map() });
+    const m = parMatch.get(b.match_id)!;
+    compter(m.total, b);
+    if (!m.parCategorie.has(b.categorie_id)) m.parCategorie.set(b.categorie_id, zero());
+    compter(m.parCategorie.get(b.categorie_id)!, b);
+  }
+  return { total, parCategorie, parMatch };
+}
