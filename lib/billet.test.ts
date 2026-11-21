@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { codeDuBillet, contenuQr, libelleStatut, referenceBillet } from "./billet.ts";
+import { bilanReservations, codeDuBillet, contenuQr, libelleStatut, referenceBillet } from "./billet.ts";
 
 const J = "43de68f3efa040c3bf19bb94691865af";
 
@@ -38,4 +38,15 @@ test("un autre QR code n'est pas un billet", () => {
 test("libellés des statuts", () => {
   assert.equal(libelleStatut("en attente"), "Réservé · à payer sur place");
   assert.equal(libelleStatut("payée"), "Payé");
+});
+
+test("bilan des tickets réservés : total, par catégorie et par match", () => {
+  const b = (match_id: string, categorie_id: string, paye = false, entre = false) => ({ match_id, categorie_id, paye, entre });
+  const bilan = bilanReservations([b("m1", "gradins"), b("m1", "gradins", true, true), b("m1", "vip", true), b("m2", "gradins")]);
+  assert.deepEqual(bilan.total, { reserves: 4, payes: 2, aPayer: 2, entres: 1 });
+  assert.deepEqual(bilan.parCategorie.get("gradins"), { reserves: 3, payes: 1, aPayer: 2, entres: 1 });
+  assert.deepEqual(bilan.parMatch.get("m1")?.total, { reserves: 3, payes: 2, aPayer: 1, entres: 1 });
+  assert.deepEqual(bilan.parMatch.get("m1")?.parCategorie.get("vip"), { reserves: 1, payes: 1, aPayer: 0, entres: 0 });
+  assert.equal(bilan.parMatch.get("m2")?.total.reserves, 1);
+  assert.equal(bilanReservations([]).total.reserves, 0);
 });

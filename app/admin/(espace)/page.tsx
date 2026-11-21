@@ -25,6 +25,9 @@ export default async function TableauDeBord() {
     db.from("matchs").select("statut, resultat_valide"),
     peutVoir(orga.role, "billets") ? db.from("commandes").select("quantite, total_fcfa").eq("statut", "payée") : Promise.resolve({ data: [] }),
   ]);
+  const reserves = peutVoir(orga.role, "billets")
+    ? await db.from("billets").select("id, commandes!inner(statut)", { count: "exact", head: true }).in("commandes.statut", ["en attente", "payée"])
+    : { count: 0 };
   const liste = matchs.data ?? [];
   const aValider = liste.filter((m) => m.statut === "terminé" && !m.resultat_valide).length;
   const ventes = commandes.data ?? [];
@@ -53,7 +56,7 @@ export default async function TableauDeBord() {
     );
   }
   if (peutVoir(orga.role, "billets")) {
-    kpis.push(["Billets vendus", ventes.reduce((s, c) => s + c.quantite, 0)], ["Recettes", fcfa(ventes.reduce((s, c) => s + c.total_fcfa, 0))]);
+    kpis.push(["Tickets réservés", reserves.count ?? 0, "/admin/billets"], ["Billets vendus", ventes.reduce((s, c) => s + c.quantite, 0)], ["Recettes", fcfa(ventes.reduce((s, c) => s + c.total_fcfa, 0))]);
   }
 
   return (
