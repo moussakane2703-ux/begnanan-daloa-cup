@@ -3,6 +3,8 @@ import { Formulaire } from "@/components/admin/Formulaire";
 import { exigerAcces, peutVoir } from "@/lib/auth";
 import { fcfa } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { BilanTickets } from "@/components/admin/BilanTickets";
+import type { CategorieBillet } from "@/lib/types";
 import { changerMotDePasse } from "./actions";
 
 function MotDePasse() {
@@ -25,9 +27,8 @@ export default async function TableauDeBord() {
     db.from("matchs").select("statut, resultat_valide"),
     peutVoir(orga.role, "billets") ? db.from("commandes").select("quantite, total_fcfa").eq("statut", "payée") : Promise.resolve({ data: [] }),
   ]);
-  const reserves = peutVoir(orga.role, "billets")
-    ? await db.from("billets").select("id, commandes!inner(statut)", { count: "exact", head: true }).in("commandes.statut", ["en attente", "payée"])
-    : { count: 0 };
+  const voitBillets = peutVoir(orga.role, "billets");
+  const categories = voitBillets ? ((await db.from("categories_billet").select("*").order("ordre")).data ?? []) as CategorieBillet[] : [];
   const liste = matchs.data ?? [];
   const aValider = liste.filter((m) => m.statut === "terminé" && !m.resultat_valide).length;
   const ventes = commandes.data ?? [];
@@ -56,7 +57,7 @@ export default async function TableauDeBord() {
     );
   }
   if (peutVoir(orga.role, "billets")) {
-    kpis.push(["Tickets réservés", reserves.count ?? 0, "/admin/billets"], ["Billets vendus", ventes.reduce((s, c) => s + c.quantite, 0)], ["Recettes", fcfa(ventes.reduce((s, c) => s + c.total_fcfa, 0))]);
+    kpis.push(["Billets vendus", ventes.reduce((s, c) => s + c.quantite, 0)], ["Recettes", fcfa(ventes.reduce((s, c) => s + c.total_fcfa, 0))]);
   }
 
   return (
@@ -69,6 +70,7 @@ export default async function TableauDeBord() {
           </div>
         ))}
       </div>
+      {voitBillets && <BilanTickets categories={categories} />}
       <MotDePasse />
     </>
   );

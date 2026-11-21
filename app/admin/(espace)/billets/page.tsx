@@ -6,7 +6,6 @@ import type { CategorieBillet } from "@/lib/types";
 import Link from "next/link";
 import { libelleStatut, type StatutCommande } from "@/lib/billet";
 import { heure, jourCourt } from "@/lib/format";
-import { BilanTickets } from "./BilanTickets";
 import { ajouterCategorie, definirMatchsOuverts, modifierCategorie, supprimerCategorie } from "./actions";
 
 function ChampsCategorie({ c }: { c?: CategorieBillet }) {
@@ -43,8 +42,6 @@ export default async function AdminBillets() {
 
   return (
     <>
-      <BilanTickets categories={(categories ?? []) as CategorieBillet[]} />
-
       <div className="card">
         <h3 style={{ marginBottom: 6 }}>Contrôle à l&apos;entrée</h3>
         <p className="small" style={{ marginBottom: 12 }}>

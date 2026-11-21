@@ -1,4 +1,4 @@
-import { bilanReservations, type BilletReserve, type Compteurs } from "@/lib/billet";
+import { bilanReservations, type BilletReserve } from "@/lib/billet";
 import { heure, jourCourt } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { CategorieBillet } from "@/lib/types";
@@ -26,15 +26,7 @@ async function billetsReserves(db: Db): Promise<BilletReserve[]> {
   return tous;
 }
 
-function Detail({ c }: { c: Compteurs }) {
-  return (
-    <span className="small">
-      {c.payes} payé{c.payes > 1 ? "s" : ""} · {c.aPayer} à payer sur place · {c.entres} entré{c.entres > 1 ? "s" : ""}
-    </span>
-  );
-}
-
-/** Section « Tickets réservés » de l'espace pro : combien de places sont prises, payées et utilisées. */
+/** Section « Tickets réservés » du tableau de bord : le nombre de places réservées, au total, par catégorie et par match. */
 export async function BilanTickets({ categories }: { categories: CategorieBillet[] }) {
   const db = await createClient();
   const billets = await billetsReserves(db);
@@ -59,16 +51,7 @@ export async function BilanTickets({ categories }: { categories: CategorieBillet
       <p className="small" style={{ marginBottom: 12 }}>
         Toutes les places réservées sur le site pour le Bêgnanan Daloa Cup (réservations annulées non comptées).
       </p>
-      <div className="grid g4" style={{ marginBottom: 16 }}>
-        {([
-          ["Tickets réservés", t.reserves],
-          ["Déjà payés", t.payes],
-          ["À payer sur place", t.aPayer],
-          ["Entrées validées", t.entres],
-        ] as const).map(([k, v]) => (
-          <div key={k} className="kpi"><span className="k">{k}</span><span className="v num">{v}</span></div>
-        ))}
-      </div>
+      <div className="kpi" style={{ marginBottom: 16 }}><span className="k">Total</span><span className="v num">{t.reserves}</span></div>
 
       {catsVues.length > 0 && (
         <div className="grid g4" style={{ marginBottom: 16 }}>
@@ -78,7 +61,6 @@ export async function BilanTickets({ categories }: { categories: CategorieBillet
               <div key={c.id} className="kpi">
                 <span className="k">{c.nom}</span>
                 <span className="v num" style={{ fontSize: "1.8rem" }}>{n?.reserves ?? 0}</span>
-                {n && <Detail c={n} />}
               </div>
             );
           })}
@@ -92,7 +74,7 @@ export async function BilanTickets({ categories }: { categories: CategorieBillet
               <tr>
                 <th>Match</th>
                 {catsVues.map((c) => <th key={c.id} className="n">{c.nom}</th>)}
-                <th className="n">Total</th><th className="n">Payés</th><th className="n">À payer</th><th className="n">Entrées</th>
+                <th className="n">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -109,9 +91,6 @@ export async function BilanTickets({ categories }: { categories: CategorieBillet
                       return <td key={c.id} className="n">{n}{c.places_par_match > 0 && <span className="small"> / {c.places_par_match}</span>}</td>;
                     })}
                     <td className="n"><b>{b.total.reserves}</b></td>
-                    <td className="n">{b.total.payes}</td>
-                    <td className="n">{b.total.aPayer}</td>
-                    <td className="n">{b.total.entres}</td>
                   </tr>
                 );
               })}
