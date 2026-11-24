@@ -561,40 +561,42 @@ nav.rubriques a.on{background:var(--gold);color:#1a1405;opacity:1}
 .cartes-print{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,640px),1fr))}
 .cartes-print h3{grid-column:1/-1;margin:6px 0 0}
 
-/* Carte recto verso : chaque face au rapport 85,6 × 54 ; tailles en cqw, identiques à l'écran et à l'impression */
+/* Carte recto verso : chaque face au rapport 85,6 × 54. Les tailles sont en --u (1 % de la largeur de la face) :
+   1cqw à l'écran, 0,856 mm à l'impression. Certains navigateurs de téléphone gardent à l'impression la largeur
+   de l'écran pour les cqw : le contenu débordait alors à droite (QR code et « Président du club » coupés). */
 .carte{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px;break-inside:avoid}
-.face{container-type:inline-size;aspect-ratio:85.6/54;border-radius:14px;overflow:hidden;position:relative;box-shadow:0 6px 20px rgb(0 0 0 / .14);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.face{--u:1cqw;container-type:inline-size;aspect-ratio:85.6/54;border-radius:14px;overflow:hidden;position:relative;box-shadow:0 6px 20px rgb(0 0 0 / .14);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .face img{display:block}
 .recto{background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 252' preserveAspectRatio='none' fill='none' stroke='white' stroke-opacity='.13' stroke-width='1.4'%3E%3Crect x='12' y='12' width='376' height='228' rx='4'/%3E%3Cpath d='M200 12v228'/%3E%3Ccircle cx='200' cy='126' r='40'/%3E%3Crect x='12' y='66' width='56' height='120'/%3E%3Crect x='332' y='66' width='56' height='120'/%3E%3C/svg%3E") center/100% 100% no-repeat,
     radial-gradient(110% 90% at 50% 38%,#22a443,#0e6a26 62%,#08461a);
-  color:#fff;display:grid;justify-items:center;align-content:center;text-align:center;padding:4cqw 6cqw}
-.recto-logo{width:27cqw;height:27cqw;object-fit:contain;filter:drop-shadow(0 1cqw 2cqw rgb(0 0 0 / .35))}
-.recto-nom{font:900 8.4cqw/0.95 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin-top:2.2cqw;text-shadow:0 .4cqw 1.2cqw rgb(0 0 0 / .3)}
-.recto-saison{font-size:3.2cqw;font-weight:600;opacity:.85;margin-top:1.2cqw;letter-spacing:.08em;text-transform:uppercase}
-.recto-type{margin-top:2.6cqw;background:#f7d417;color:#0b2a14;font:900 3.6cqw/1 var(--f-display);text-transform:uppercase;letter-spacing:.08em;padding:1.3cqw 3.6cqw;border-radius:99px}
-.recto-club{position:absolute;left:0;right:0;bottom:3cqw;display:flex;justify-content:center;align-items:center;gap:1.6cqw;font-size:3cqw;font-weight:700;opacity:.92}
-.recto-club img{width:5cqw;height:5cqw;border-radius:1cqw;object-fit:contain;background:#fff}
+  color:#fff;display:grid;justify-items:center;align-content:center;text-align:center;padding:calc(4*var(--u)) calc(6*var(--u))}
+.recto-logo{width:calc(27*var(--u));height:calc(27*var(--u));object-fit:contain;filter:drop-shadow(0 calc(1*var(--u)) calc(2*var(--u)) rgb(0 0 0 / .35))}
+.recto-nom{font:900 calc(8.4*var(--u))/0.95 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin-top:calc(2.2*var(--u));text-shadow:0 calc(.4*var(--u)) calc(1.2*var(--u)) rgb(0 0 0 / .3)}
+.recto-saison{font-size:calc(3.2*var(--u));font-weight:600;opacity:.85;margin-top:calc(1.2*var(--u));letter-spacing:.08em;text-transform:uppercase}
+.recto-type{margin-top:calc(2.6*var(--u));background:#f7d417;color:#0b2a14;font:900 calc(3.6*var(--u))/1 var(--f-display);text-transform:uppercase;letter-spacing:.08em;padding:calc(1.3*var(--u)) calc(3.6*var(--u));border-radius:99px}
+.recto-club{position:absolute;left:0;right:0;bottom:calc(3*var(--u));display:flex;justify-content:center;align-items:center;gap:calc(1.6*var(--u));font-size:calc(3*var(--u));font-weight:700;opacity:.92}
+.recto-club img{width:calc(5*var(--u));height:calc(5*var(--u));border-radius:calc(1*var(--u));object-fit:contain;background:#fff}
 .verso{background:#fbfaf5;color:#14231a;display:grid;grid-template-rows:auto 1fr auto}
-.verso-tete{display:flex;align-items:center;gap:1.8cqw;background:linear-gradient(90deg,#0e6a26,#1f9a3d);color:#fff;padding:1.8cqw 3.6cqw}
-.verso-tete img{width:7cqw;height:7cqw;object-fit:contain}
-.verso-tete span{font:800 3.2cqw/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em}
-.verso-tete b{margin-left:auto;font:900 3.2cqw/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:#f7d417;white-space:nowrap}
-.verso-corps{display:grid;grid-template-columns:19cqw minmax(0,1fr) 31cqw;gap:3cqw;align-items:center;padding:3cqw 3.6cqw 1.5cqw}
-.verso-photo{width:19cqw;height:24cqw;border-radius:2cqw;object-fit:cover;background:#e7eee8;border:.5cqw solid #0e6a26}
-.verso-photo.vide{display:grid;place-items:center;font:900 7cqw var(--f-display);color:#0e6a26}
-.verso-infos{display:grid;gap:1.1cqw;min-width:0}
-.verso-nom{font:900 5.6cqw/1 var(--f-display);text-transform:uppercase;overflow-wrap:anywhere}
-.verso-club{display:flex;align-items:center;gap:1.2cqw;font-size:3.1cqw;font-weight:700}
-.verso-club img{width:4.6cqw;height:4.6cqw;object-fit:contain;flex:none}
-.verso-detail{font-size:3cqw;opacity:.8}
-.verso-numero{font:700 3.3cqw var(--f-mono);letter-spacing:.04em;color:#0e6a26}
-.verso-qr{display:block;width:31cqw;height:31cqw;background:#fff;border-radius:1.5cqw;border:.3cqw solid #d9e2db}
+.verso-tete{display:flex;align-items:center;gap:calc(1.8*var(--u));background:linear-gradient(90deg,#0e6a26,#1f9a3d);color:#fff;padding:calc(1.8*var(--u)) calc(3.6*var(--u))}
+.verso-tete img{width:calc(7*var(--u));height:calc(7*var(--u));object-fit:contain}
+.verso-tete span{font:800 calc(3.2*var(--u))/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em}
+.verso-tete b{margin-left:auto;font:900 calc(3.2*var(--u))/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:#f7d417;white-space:nowrap}
+.verso-corps{display:grid;grid-template-columns:calc(19*var(--u)) minmax(0,1fr) calc(31*var(--u));gap:calc(3*var(--u));align-items:center;padding:calc(3*var(--u)) calc(3.6*var(--u)) calc(1.5*var(--u))}
+.verso-photo{width:calc(19*var(--u));height:calc(24*var(--u));border-radius:calc(2*var(--u));object-fit:cover;background:#e7eee8;border:calc(.5*var(--u)) solid #0e6a26}
+.verso-photo.vide{display:grid;place-items:center;font:900 calc(7*var(--u)) var(--f-display);color:#0e6a26}
+.verso-infos{display:grid;gap:calc(1.1*var(--u));min-width:0}
+.verso-nom{font:900 calc(5.6*var(--u))/1 var(--f-display);text-transform:uppercase;overflow-wrap:anywhere}
+.verso-club{display:flex;align-items:center;gap:calc(1.2*var(--u));font-size:calc(3.1*var(--u));font-weight:700}
+.verso-club img{width:calc(4.6*var(--u));height:calc(4.6*var(--u));object-fit:contain;flex:none}
+.verso-detail{font-size:calc(3*var(--u));opacity:.8}
+.verso-numero{font:700 calc(3.3*var(--u)) var(--f-mono);letter-spacing:.04em;color:#0e6a26}
+.verso-qr{display:block;width:calc(31*var(--u));height:calc(31*var(--u));background:#fff;border-radius:calc(1.5*var(--u));border:calc(.3*var(--u)) solid #d9e2db}
 .verso-qr svg{width:100%;height:100%;display:block}
-.verso-pied{font-size:2.4cqw;text-align:center;opacity:.6;padding:0 3cqw 2cqw}
+.verso-pied{font-size:calc(2.4*var(--u));text-align:center;opacity:.6;padding:0 calc(3*var(--u)) calc(2*var(--u))}
 /* Aperçu des présidents : pas de QR code, filigrane « non valable », rien à l'impression. */
-.verso-qr.sans-qr{display:grid;place-items:center;text-align:center;padding:2cqw;font-size:2.6cqw;font-weight:700;color:#7a857d;border-style:dashed;background:repeating-linear-gradient(45deg,#f3f5f2 0 2cqw,#fff 2cqw 4cqw)}
-.face-filigrane{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font:900 7cqw/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:rgb(200 30 30 / .5);transform:rotate(-18deg);white-space:nowrap}
+.verso-qr.sans-qr{display:grid;place-items:center;text-align:center;padding:calc(2*var(--u));font-size:calc(2.6*var(--u));font-weight:700;color:#7a857d;border-style:dashed;background:repeating-linear-gradient(45deg,#f3f5f2 0 calc(2*var(--u)),#fff calc(2*var(--u)) calc(4*var(--u)))}
+.face-filigrane{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font:900 calc(7*var(--u))/1 var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:rgb(200 30 30 / .5);transform:rotate(-18deg);white-space:nowrap}
 .apercu-impression{display:none}
 @media print{
   @page{size:A4;margin:10mm}
@@ -608,7 +610,11 @@ nav.rubriques a.on{background:var(--gold);color:#1a1405;opacity:1}
   .cartes-print h3{font-size:11pt;margin:3mm 0 2mm}
   .carte{display:flex;gap:0;justify-content:center;margin-bottom:5mm;break-inside:avoid;page-break-inside:avoid}
   .face{flex:none}
-  .face{width:85.6mm;border-radius:0;box-shadow:none;border:.2mm dashed #9aa59d;box-sizing:border-box}
+  .face{--u:.856mm;width:85.6mm;height:54mm;border-radius:0;box-shadow:none;border:.2mm dashed #9aa59d;box-sizing:border-box}
+  /* Pas d'ombre floue à l'impression : certains lecteurs PDF l'affichent comme un carré gris. */
+  .recto-logo{filter:none}.recto-nom{text-shadow:none}
+  /* Recto : marges et tailles fixes, le contenu tient dans les 54 mm de haut. */
+  .recto{padding:3mm 5mm}.recto>*{--u:.7mm}
   .cartes-apercu{display:none!important}
   .apercu-impression{display:block;font-size:14pt;text-align:center;margin-top:20mm}
 }
