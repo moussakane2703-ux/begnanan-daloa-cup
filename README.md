@@ -33,6 +33,7 @@ Aucun mot de passe ni clé ne doit être envoyé par message : ils se saisissent
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
 3. Cliquer sur **Deploy**. Le site est en ligne à une adresse `….vercel.app` ; un nom de domaine (par exemple `begnanandaloacup.ci`) peut être branché ensuite dans **Settings → Domains**.
+4. Chaque fusion dans la branche `main` remet le site en ligne automatiquement (1 à 2 minutes). Si le site ne change plus après une fusion, vérifier dans Vercel, **Settings → Git**, que le projet est bien relié au dépôt `moussakane2703-ux/begnanan-daloa-cup` (branche de production : `main`).
 
 ### 3. Premiers pas dans l'espace organisateurs
 
