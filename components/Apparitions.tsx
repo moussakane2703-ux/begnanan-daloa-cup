@@ -22,6 +22,8 @@ export function Apparitions() {
 
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+    // Espace pro et espace club : outils de travail, rien n'y est masqué en attendant le défilement.
+    if (chemin.startsWith("/admin") || chemin.startsWith("/espace-club")) return;
     const io = new IntersectionObserver(
       (entrees) => {
         for (const e of entrees) {
@@ -33,7 +35,9 @@ export function Apparitions() {
           setTimeout(() => (el.dataset.rv = "fini"), 1600);
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+      // Seuil à 0 : un bloc très haut (une longue liste) apparaît dès son premier pixel visible.
+      // Avec un seuil en pourcentage, un bloc plus haut que l'écran ne l'atteignait jamais et restait invisible.
+      { rootMargin: "0px 0px -8% 0px", threshold: 0 },
     );
     const elements = Array.from(cibles()).filter((el) => !el.dataset.rv);
     // (data-rv vide : pas encore vu ; « vu » ou « fini » : déjà apparu, on n'y touche plus.)
