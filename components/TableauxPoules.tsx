@@ -15,12 +15,12 @@ export function TableauxPoules({ lignes, clubs }: { lignes: (LigneClassement & {
             <div key={poule}>
               <h3 style={{ marginBottom: 10 }}>Poule {poule}</h3>
               <div className="tbl-wrap">
-                <table>
+                <table className="tbl-poule">
                   <thead>
                     <tr>
                       <th>#</th><th>Équipe</th>
                       <th className="n">J</th><th className="n">G</th><th className="n">N</th><th className="n">P</th>
-                      <th className="n">Diff</th><th className="n">Pts</th>
+                      <th className="n">Diff</th><th className="n th-pts" title="Points">Pts</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -36,7 +36,7 @@ export function TableauxPoules({ lignes, clubs }: { lignes: (LigneClassement & {
                         <td className="n">{l.joues}</td><td className="n">{l.gagnes}</td>
                         <td className="n">{l.nuls}</td><td className="n">{l.perdus}</td>
                         <td className="n">{l.difference > 0 ? "+" : ""}{l.difference}</td>
-                        <td className="n pts">{l.points}</td>
+                        <td className="n"><span className="cage-pts">{l.points}</span></td>
                       </tr>
                     ))}
                   </tbody>
