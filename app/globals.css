@@ -124,6 +124,8 @@ nav.sub a:hover,nav.sub a.on{opacity:1;background:rgb(255 255 255 / .12)}
 section.band{padding-block:clamp(52px,7vw,88px)}
 section.band,.hero{scroll-margin-top:72px}
 section.band.alt{background:var(--surface-2)}
+/* Page des clubs : la liste commence juste sous le menu, sans grand vide au-dessus. */
+section.band.band-serre{padding-top:clamp(18px,2.5vw,32px)}
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px;flex-wrap:wrap}
 .head p{color:var(--muted);max-width:56ch;margin-top:8px}
 .grid{display:grid;gap:16px}

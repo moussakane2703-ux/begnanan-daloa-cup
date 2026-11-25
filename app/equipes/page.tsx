@@ -14,7 +14,7 @@ export default async function Equipes() {
   const [clubs, tournoi, actualites] = await Promise.all([getClubs(), getTournoi(), getActualitesClubs(6)]);
   const index = parId(clubs);
   return (
-    <section className="band">
+    <section className="band band-serre">
       <div className="wrap">
         <div className="head">
           <div>
