@@ -10,12 +10,17 @@ import { EVENEMENTS, type Match, type Periode, type TirAuBut, type TypeEvenement
 
 const TYPES = ["but", "csc", "jaune", "rouge"];
 
+/** Nom écrit à la main : espaces en trop retirés, 150 caractères au plus. */
+const nomLibre = (f: FormData, k: string) => texte(f, k).replace(/\s+/g, " ").slice(0, 150);
+
 export async function ajouterEvenement(_: Etat, f: FormData): Promise<Etat> {
   await exigerAcces("direct");
   const type = texte(f, "type");
   const matchId = texte(f, "match_id");
   const equipe = texte(f, "club_id");
   const joueurId = texte(f, "joueur_id") || null;
+  // Joueur non inscrit : son nom écrit à la main (utilisé quand aucun joueur inscrit n'est choisi).
+  const libre = joueurId ? "" : nomLibre(f, "joueur_libre");
   const minute = entier(f, "minute");
   if (!TYPES.includes(type)) return { erreur: "Choisissez but, but contre son camp ou carton." };
   if (minute !== null && (Number.isNaN(minute) || minute < 0 || minute > 130)) return { erreur: "Minute invalide." };
@@ -27,15 +32,38 @@ export async function ajouterEvenement(_: Etat, f: FormData): Promise<Etat> {
     lireDurees(db),
   ]);
   if (!m) return { erreur: "Match introuvable." };
-  // Minute laissée vide : celle du chrono.
-  const minuteJouee = minute ?? minuteDeJeu(m, durees)?.valeur ?? null;
+  // Match terminé : on complète le déroulé après coup, le score ne change pas (contrôlé par la base).
+  const apres = m.statut === "terminé" || m.resultat_valide;
+  if (apres && !j && !libre && (type === "but" || type === "csc")) return { erreur: "Écrivez le nom du buteur (ou choisissez un joueur inscrit)." };
+  // Minute laissée vide : celle du chrono pendant le match, aucune après le match.
+  const minuteJouee = minute ?? (apres ? null : minuteDeJeu(m, durees)?.valeur ?? null);
   // Un but contre son camp est compté à l'adversaire de l'équipe du joueur.
   const club = type === "csc" ? (equipe === m.club_domicile ? m.club_exterieur : m.club_domicile) : equipe;
   const libelle = EVENEMENTS[type as TypeEvenement].libelle;
+  const nom = j ? `${j.prenoms} ${j.nom}` : libre || null;
+  const but = type === "but" || type === "csc";
   return ecrire(
     "direct",
-    (d) => d.from("evenements_match").insert({ match_id: matchId, club_id: club, type, joueur_id: joueurId, joueur_nom: j ? `${j.prenoms} ${j.nom}` : null, minute: minuteJouee, ...periodeSaisie(m) }),
-    `${libelle} enregistré${type === "but" || type === "csc" ? " : score mis à jour" : ""}.`,
+    (d) => d.from("evenements_match").insert({ match_id: matchId, club_id: club, type, joueur_id: joueurId, joueur_nom: nom, minute: minuteJouee, ...(apres ? {} : periodeSaisie(m)) }),
+    `${libelle} enregistré${nom ? ` (${nom})` : ""}${but ? (apres ? " : le score ne change pas" : " : score mis à jour") : ""}.`,
+  );
+}
+
+/** Compléter ou corriger le nom (et la minute) d'un but ou d'un carton déjà saisi : le score ne change pas. */
+export async function modifierEvenement(_: Etat, f: FormData): Promise<Etat> {
+  await exigerAcces("direct");
+  const nom = nomLibre(f, "joueur_nom");
+  const minute = entier(f, "minute");
+  if (minute !== null && (Number.isNaN(minute) || minute < 0 || minute > 130)) return { erreur: "Minute invalide." };
+  const id = texte(f, "id");
+  const { data: e } = await (await createClient()).from("evenements_match").select("joueur_nom").eq("id", id).single();
+  if (!e) return { erreur: "Saisie introuvable : la page n'était peut-être plus à jour." };
+  // Nom inchangé : on garde le lien avec la fiche du joueur inscrit.
+  const joueur = nom === (e.joueur_nom ?? "") ? {} : { joueur_id: null, joueur_nom: nom || null };
+  return ecrire(
+    "direct",
+    (d) => d.from("evenements_match").update({ ...joueur, minute }).eq("id", id),
+    nom ? `Nom enregistré : ${nom}.` : "Nom retiré.",
   );
 }
 
@@ -66,7 +94,7 @@ export async function choisirHommeDuMatch(_: Etat, f: FormData): Promise<Etat> {
 }
 
 export async function retirerEvenement(_: Etat, f: FormData): Promise<Etat> {
-  return ecrire("direct", (db) => db.from("evenements_match").delete().eq("id", texte(f, "id")), "Retiré : score mis à jour.");
+  return ecrire("direct", (db) => db.from("evenements_match").delete().eq("id", texte(f, "id")), texte(f, "apres") ? "Retiré (le score ne change pas)." : "Retiré : score mis à jour.");
 }
 
 async function lireDurees(db: Awaited<ReturnType<typeof createClient>>): Promise<Durees> {

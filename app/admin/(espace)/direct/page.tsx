@@ -10,7 +10,7 @@ import { heure, jourCourt } from "@/lib/format";
 import { adresseDuSite } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import { EVENEMENTS, type Club, type EvenementMatch, type Match, type TirAuBut, type Tournoi } from "@/lib/types";
-import { changerStatut, choisirHommeDuMatch, reglerTemps, retirerEvenement, retirerTir } from "./actions";
+import { changerStatut, choisirHommeDuMatch, modifierEvenement, reglerTemps, retirerEvenement, retirerTir } from "./actions";
 import { CommandesChrono, SaisieEquipe, SaisieTir } from "./Saisie";
 
 /** Match en direct : chrono, buts, cartons et tirs au but saisis depuis le téléphone, score mis à jour sur le site. */
@@ -25,8 +25,8 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
   const durees: Durees = { mi_temps: t?.duree_mi_temps ?? null, prolongation: t?.duree_prolongation ?? null };
   const tireurs = t?.tab_tireurs ?? 3;
   const demande = (await searchParams).match;
-  // Les matchs validés restent accessibles depuis « Clubs et matchs » (Homme du match), sans figurer dans la liste.
-  const matchs = ((m ?? []) as Match[]).filter((x) => !x.resultat_valide || x.id === demande);
+  // Les matchs terminés (validés ou non) restent dans la liste : on peut y ajouter les buteurs après coup.
+  const matchs = (m ?? []) as Match[];
   const clubs = new Map(((c ?? []) as Pick<Club, "id" | "nom">[]).map((x) => [x.id, x]));
   const nom = (id: string) => clubs.get(id)?.nom ?? "?";
   const match = matchs.find((x) => x.id === demande) ?? matchs.find((x) => x.statut === "en cours") ?? matchs.find((x) => x.statut === "programmé");
@@ -37,7 +37,7 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
       <>
       <div className="card">
         <h3 style={{ marginBottom: 6 }}>Match en direct</h3>
-        <p className="small">Aucun match à suivre : ajoutez les matchs dans « Clubs et matchs ». Les matchs dont le résultat est validé n&apos;apparaissent plus ici.</p>
+        <p className="small">Aucun match à suivre : ajoutez les matchs dans « Clubs et matchs ».</p>
       </div>
       <LiensLive site={site} />
       </>
@@ -50,6 +50,8 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
     db.from("tirs_au_but").select("*").eq("match_id", match.id).order("ordre"),
   ]);
   const tirs = (tab ?? []) as TirAuBut[];
+  // Match terminé : on complète les buteurs, le score ne bouge plus.
+  const apres = match.statut === "terminé" || match.resultat_valide;
   const seance = match.periode === "tab" && match.statut === "en cours";
   const bilan = bilanTirs(tirs, match.club_domicile, match.club_exterieur, tireurs);
   const aSonTour = (club: string) => !bilan.vainqueur && (bilan.prochain === null || bilan.prochain === club);
@@ -100,7 +102,9 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
           <Link className="btn line sm" href={`/matchs/${match.id}`} target="_blank">Voir la page publique</Link>
         </div>
         <p className="small" style={{ marginTop: 8 }}>
-          Le score se calcule à partir des buts saisis ici. Le résultat devient officiel quand vous le validez dans « Clubs et matchs ».
+          {apres
+            ? "Match terminé : les buteurs ajoutés ici complètent le déroulé, la fiche du match et les meilleurs buteurs, sans changer le score. Le score se corrige dans « Clubs et matchs »."
+            : "Le score se calcule à partir des buts saisis ici. Le résultat devient officiel quand vous le validez dans « Clubs et matchs »."}
         </p>
       </div>
 
@@ -128,14 +132,20 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
         </div>
       )}
 
-      {match.resultat_valide && (
-        <div className="card"><p className="small">Résultat validé : les buts et cartons ne se modifient plus (retirez la validation dans « Clubs et matchs » pour corriger).</p></div>
+      {apres && (
+        <div className="card">
+          <h3 style={{ marginBottom: 6 }}>Ajouter les buteurs du match</h3>
+          <p className="small">
+            Écrivez le nom du buteur dans la case de son équipe puis appuyez sur « ⚽ But ». Un but déjà dans le déroulé sans nom
+            (« joueur non précisé ») se complète avec « Modifier le nom » plus bas, pour ne pas le compter deux fois.
+          </p>
+        </div>
       )}
 
-      {!match.resultat_valide && <div className="direct-equipes">
+      {match.statut !== "annulé" && match.statut !== "reporté" && <div className="direct-equipes">
         {seance
           ? equipes.map((e) => <SaisieTir key={e.id} matchId={match.id} club={e} joueurs={liste(e.id)} aSonTour={aSonTour(e.id)} />)
-          : equipes.map((e) => <SaisieEquipe key={e.id} matchId={match.id} club={e} joueurs={liste(e.id)} />)}
+          : equipes.map((e) => <SaisieEquipe key={e.id} matchId={match.id} club={e} joueurs={liste(e.id)} apres={apres} />)}
       </div>}
 
       {"hdm_nom" in match && (
@@ -171,9 +181,18 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
             <div key={x.id} className="adm-item direct-ligne">
               <span className="num">{x.minute !== null ? `${x.minute}'` : "–"}</span>
               <span>{EVENEMENTS[x.type].icone} {EVENEMENTS[x.type].libelle} · <b>{x.joueur_nom ?? "joueur non précisé"}</b> <span className="small">({x.type === "csc" ? `compté pour ${nom(x.club_id)}` : nom(x.club_id)})</span></span>
-              <Formulaire action={retirerEvenement} bouton="Annuler" className="form-row" confirmer="Annuler cette saisie ?">
+              <Formulaire action={retirerEvenement} bouton="Annuler" className="form-row" confirmer={apres ? "Retirer cette saisie ? Le score ne change pas." : "Annuler cette saisie ?"}>
                 <input type="hidden" name="id" value={x.id} />
+                {apres && <input type="hidden" name="apres" value="1" />}
               </Formulaire>
+              <details className="direct-modifier">
+                <summary className="small">{x.joueur_nom ? "Modifier le nom" : "Ajouter le nom"}</summary>
+                <Formulaire action={modifierEvenement} className="form-row">
+                  <input type="hidden" name="id" value={x.id} />
+                  <label className="field" style={{ flex: "3 1 160px" }}>Nom du joueur<input name="joueur_nom" maxLength={150} defaultValue={x.joueur_nom ?? ""} autoComplete="off" /></label>
+                  <label className="field" style={{ flex: "1 1 70px" }}>Minute<input name="minute" type="number" min={0} max={130} inputMode="numeric" defaultValue={x.minute ?? ""} /></label>
+                </Formulaire>
+              </details>
             </div>
           ))}
         </div>

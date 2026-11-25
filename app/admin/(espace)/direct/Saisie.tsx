@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { Etat } from "@/lib/admin";
 import { PERIODES, suites, type Chrono } from "@/lib/chrono";
 import { ajouterEvenement, ajouterTir, piloterChrono } from "./actions";
@@ -12,22 +12,40 @@ const BOUTONS = [
   ["csc", "Contre son camp", "line"],
 ] as const;
 
-/** Saisie d'un but ou d'un carton pour une équipe : un bouton par type, pensé pour le téléphone. */
-export function SaisieEquipe({ matchId, club, joueurs }: { matchId: string; club: { id: string; nom: string }; joueurs: { id: string; nom: string }[] }) {
+/**
+ * Saisie d'un but ou d'un carton pour une équipe : un bouton par type, pensé pour le téléphone.
+ * Le joueur se choisit parmi les inscrits, ou son nom s'écrit à la main s'il n'est pas inscrit.
+ * Après le match (« apres ») : on complète le déroulé, le score ne change pas.
+ */
+export function SaisieEquipe({ matchId, club, joueurs, apres = false }: { matchId: string; club: { id: string; nom: string }; joueurs: { id: string; nom: string }[]; apres?: boolean }) {
   const [etat, envoyer, envoi] = useActionState<Etat, FormData>(ajouterEvenement, {});
+  const [choix, setChoix] = useState("");
+  // Après chaque saisie réussie, le choix du joueur revient à zéro (les champs texte se vident seuls).
+  const [vu, setVu] = useState(etat);
+  if (etat !== vu) {
+    setVu(etat);
+    if (etat.ok) setChoix("");
+  }
   return (
     <form action={envoyer} className="card direct-equipe">
       <h3 style={{ marginBottom: 10 }}>{club.nom}</h3>
       <input type="hidden" name="match_id" value={matchId} />
       <input type="hidden" name="club_id" value={club.id} />
       <div className="form-row" style={{ marginTop: 0 }}>
-        <label className="field" style={{ flex: "3 1 160px" }}>Joueur
-          <select name="joueur_id" defaultValue="">
-            <option value="">Non précisé</option>
-            {joueurs.map((j) => <option key={j.id} value={j.id}>{j.nom}</option>)}
-          </select>
-        </label>
-        <label className="field" style={{ flex: "1 1 70px" }}>Minute<input name="minute" type="number" min={0} max={130} inputMode="numeric" placeholder="chrono" /></label>
+        {joueurs.length > 0 && (
+          <label className="field" style={{ flex: "3 1 160px" }}>Joueur inscrit
+            <select name="joueur_id" value={choix} onChange={(e) => setChoix(e.target.value)}>
+              <option value="">{apres ? "Pas dans la liste" : "Non précisé / pas dans la liste"}</option>
+              {joueurs.map((j) => <option key={j.id} value={j.id}>{j.nom}</option>)}
+            </select>
+          </label>
+        )}
+        {!choix && (
+          <label className="field" style={{ flex: "3 1 160px" }}>{joueurs.length ? "Ou nom du joueur" : "Nom du joueur"}
+            <input name="joueur_libre" maxLength={150} autoComplete="off" placeholder={apres ? "ex. Bozer" : "facultatif, ex. Bozer"} />
+          </label>
+        )}
+        <label className="field" style={{ flex: "1 1 70px" }}>Minute<input name="minute" type="number" min={0} max={130} inputMode="numeric" placeholder={apres ? "facultatif" : "chrono"} /></label>
       </div>
       <div className="direct-boutons">
         {BOUTONS.map(([t, libelle, style]) => (
