@@ -41,6 +41,22 @@ const verifier = (p: ReturnType<typeof publication>) => {
   return null;
 };
 
+/**
+ * Homme du match publié dans les médias et lié à un match : il est aussi inscrit sur la carte
+ * du match (page Résultats), sauf si le comité en a déjà désigné un depuis « Match en direct ».
+ */
+async function reporterHommeDuMatch(p: ReturnType<typeof publication>) {
+  if (p.type !== "hdm" || !p.publiee || !p.match_id || !p.joueur || !p.club_id) return;
+  await exigerAcces("medias");
+  const db = createServiceClient();
+  await db
+    .from("matchs")
+    .update({ hdm_nom: p.joueur.slice(0, 150), hdm_club_id: p.club_id, hdm_joueur_id: null })
+    .eq("id", p.match_id)
+    .is("hdm_nom", null)
+    .or(`club_domicile.eq.${p.club_id},club_exterieur.eq.${p.club_id}`);
+}
+
 export async function ajouterPublication(_: Etat, f: FormData): Promise<Etat> {
   const p = publication(f);
   const erreur = verifier(p);
@@ -53,6 +69,7 @@ export async function ajouterPublication(_: Etat, f: FormData): Promise<Etat> {
     p.publiee ? "Publié." : "Brouillon enregistré.",
   );
   if (r.erreur) await retirerPhotos([image.url]);
+  else await reporterHommeDuMatch(p);
   return r;
 }
 
@@ -71,6 +88,7 @@ export async function modifierPublication(_: Etat, f: FormData): Promise<Etat> {
   const image_url = image.url ?? (retirer ? null : ancienne);
   const r = await ecrire("medias", (db) => db.from("publications").update({ ...p, image_url, publiee_le }).eq("id", texte(f, "id")));
   await retirerPhotos(r.erreur ? [image.url] : image_url !== ancienne ? [ancienne] : []);
+  if (!r.erreur) await reporterHommeDuMatch(p);
   return r;
 }
 
