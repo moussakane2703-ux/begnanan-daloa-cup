@@ -33,7 +33,7 @@ export default async function Resultats() {
             <div>
               <div className="eyebrow">Résultats</div>
               <h1 className="h2">Les scores du tournoi</h1>
-              <p>Score par mi-temps, buteurs et Homme du match. Chaque match a son affiche à partager sur WhatsApp. Un score reste provisoire tant que le comité ne l&apos;a pas validé.</p>
+              <p>Score par mi-temps, buteurs et Homme du match. Chaque match a son affiche à partager sur WhatsApp. Le classement se met à jour dès qu&apos;un match est terminé.</p>
             </div>
           </div>
 

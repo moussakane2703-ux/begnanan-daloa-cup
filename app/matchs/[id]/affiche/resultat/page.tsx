@@ -33,7 +33,6 @@ export default async function AfficheResultat({ params }: { params: Promise<{ id
       <div className="wrap" style={{ maxWidth: 720 }}>
         <Link className="small" href={`/matchs/${id}`}>← Retour au match</Link>
         <h1 className="h2" style={{ margin: "8px 0 12px", fontSize: "1.8rem" }}>{titre} à partager</h1>
-        {match.statut === "terminé" && !match.resultat_valide && <p className="small">Résultat provisoire : il n&apos;est pas encore validé par le comité.</p>}
         <ExportAffiche fichier={`resultat-${dom?.sigle ?? "dom"}-${ext?.sigle ?? "ext"}.png`.toLowerCase()} message={message}>
           <div className="aff">
             <EnteteAffiche titre={titre} sousTitre={`${libellePhase(match)} · ${jourCourt(match.date_heure)} · ${heure(match.date_heure)}`} />

@@ -15,7 +15,7 @@ export default async function Matchs() {
           <div>
             <div className="eyebrow">Calendrier et résultats</div>
             <h1 className="h2">Les rencontres</h1>
-            <p>Filtrez par poule, équipe ou statut. Un score reste provisoire tant que le comité ne l&apos;a pas validé.</p>
+            <p>Filtrez par poule, équipe ou statut.</p>
           </div>
         </div>
         {matchs.length ? (

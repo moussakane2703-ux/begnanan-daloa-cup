@@ -74,7 +74,7 @@ export async function modifierMatch(_: Etat, f: FormData): Promise<Etat> {
   // Champs ajoutés par la migration 0016 : envoyés seulement s'ils sont dans le formulaire.
   const miTemps = f.has("mt_buts_domicile") ? { mt_buts_domicile: mtd, mt_buts_exterieur: mte } : {};
   if (statut === "terminé" && (bd === null || be === null)) return { erreur: "Saisissez le score avant de terminer le match." };
-  if (valide && statut !== "terminé") return { erreur: "Seul un match terminé peut être validé." };
+  if (valide && statut !== "terminé") return { erreur: "Seul un match terminé peut être verrouillé." };
   const r = await ecrire("matchs", (db) =>
     db
       .from("matchs")
