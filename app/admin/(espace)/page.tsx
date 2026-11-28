@@ -24,19 +24,17 @@ export default async function TableauDeBord() {
   const db = await createClient();
   const [clubs, matchs, commandes] = await Promise.all([
     db.from("clubs").select("id", { count: "exact", head: true }),
-    db.from("matchs").select("statut, resultat_valide"),
+    db.from("matchs").select("statut"),
     peutVoir(orga.role, "billets") ? db.from("commandes").select("quantite, total_fcfa").eq("statut", "payée") : Promise.resolve({ data: [] }),
   ]);
   const voitBillets = peutVoir(orga.role, "billets");
   const categories = voitBillets ? ((await db.from("categories_billet").select("*").order("ordre")).data ?? []) as CategorieBillet[] : [];
   const liste = matchs.data ?? [];
-  const aValider = liste.filter((m) => m.statut === "terminé" && !m.resultat_valide).length;
   const ventes = commandes.data ?? [];
 
   const kpis: [string, string | number, string?][] = [
     ["Clubs inscrits", clubs.count ?? 0],
     ["Matchs joués", liste.filter((m) => m.statut === "terminé").length],
-    ["Résultats à valider", aValider, peutVoir(orga.role, "matchs") ? "/admin/matchs" : undefined],
   ];
   if (peutVoir(orga.role, "licences")) {
     const [demandes, licences, encadrement, transferts, modifications, messages] = await Promise.all([

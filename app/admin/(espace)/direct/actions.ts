@@ -122,7 +122,7 @@ export async function changerStatut(_: Etat, f: FormData): Promise<Etat> {
   return ecrire(
     "direct",
     (db) => db.from("matchs").update(maj).eq("id", id),
-    statut === "en cours" ? "Coup d'envoi : le chrono tourne et le match apparaît « en cours » sur le site." : "Match terminé. Validez le résultat dans « Clubs et matchs ».",
+    statut === "en cours" ? "Coup d'envoi : le chrono tourne et le match apparaît « en cours » sur le site." : "Match terminé : le score compte déjà dans le classement.",
   );
 }
 

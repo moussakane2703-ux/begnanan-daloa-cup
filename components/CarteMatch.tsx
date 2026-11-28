@@ -99,7 +99,6 @@ export function CarteMatch({
 
       <div className="cm-pied">
         <span className="small">📍 {match.terrain} · {lieu}</span>
-        {match.statut === "terminé" && !match.resultat_valide && <span className="small">Résultat provisoire</span>}
         <div className="cm-actions">
           {lienDetail && <Link className="btn line sm" href={`/matchs/${match.id}`}>{match.statut === "en cours" ? "Suivre en direct" : "Détails"}</Link>}
           {compositions.length > 0 && <Link className="btn line sm" href={`/matchs/${match.id}#compositions`}>Compositions</Link>}

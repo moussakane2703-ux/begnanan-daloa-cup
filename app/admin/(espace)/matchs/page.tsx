@@ -43,16 +43,12 @@ export default async function AdminMatchs() {
   ]);
   const listeClubs = (clubs ?? []) as Club[];
   const nom = new Map(listeClubs.map((c) => [c.id, c.nom]));
-  const aValider = ((matchs ?? []) as Match[]).filter((m) => m.statut === "terminé" && !m.resultat_valide);
 
   return (
     <>
-      {aValider.length > 0 && (
-        <div className="card" style={{ borderColor: "var(--gold)" }}>
-          <b>{aValider.length} résultat{aValider.length > 1 ? "s" : ""} en attente de validation.</b>
-          <p className="small">Un score n&apos;entre dans le classement qu&apos;une fois la case « Résultat validé » cochée.</p>
-        </div>
-      )}
+      <div className="card">
+        <p className="small">Le classement des poules se met à jour tout seul dès qu&apos;un match passe « terminé » avec son score. La case « Résultat verrouillé » est facultative : elle empêche seulement de modifier ensuite les buts et les tirs au but du match.</p>
+      </div>
 
       <div className="card">
         <h3 style={{ marginBottom: 12 }}>Matchs</h3>
@@ -103,7 +99,7 @@ export default async function AdminMatchs() {
                 )}
                 <label className="field">Date et heure<input name="date_heure" type="datetime-local" defaultValue={local(m.date_heure)} required /></label>
                 <label className="field">Terrain<input name="terrain" defaultValue={m.terrain} /></label>
-                <label className="chk"><input name="resultat_valide" type="checkbox" defaultChecked={m.resultat_valide} /> Résultat validé</label>
+                <label className="chk"><input name="resultat_valide" type="checkbox" defaultChecked={m.resultat_valide} /> Résultat verrouillé</label>
               </Formulaire>
               <Formulaire action={supprimerMatch} className="form-del" bouton="Supprimer" confirmer="Supprimer ce match ?">
                 <input type="hidden" name="id" value={m.id} />

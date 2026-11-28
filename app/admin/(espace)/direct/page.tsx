@@ -104,7 +104,7 @@ export default async function Direct({ searchParams }: { searchParams: Promise<{
         <p className="small" style={{ marginTop: 8 }}>
           {apres
             ? "Match terminé : les buteurs ajoutés ici complètent le déroulé, la fiche du match et les meilleurs buteurs, sans changer le score. Le score se corrige dans « Clubs et matchs »."
-            : "Le score se calcule à partir des buts saisis ici. Le résultat devient officiel quand vous le validez dans « Clubs et matchs »."}
+            : "Le score se calcule à partir des buts saisis ici. Dès que le match est terminé, le score compte dans le classement."}
         </p>
       </div>
 
