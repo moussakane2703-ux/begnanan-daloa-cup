@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { referenceBillet } from "@/lib/billet";
 import { annulerReservation, chercherBillet, faireEntrer, type BilletControle, type ResultatControle } from "../actions";
+import { verifierBadge, type ResultatBadge } from "../../badge/actions";
+import { CarteBadge } from "../../badge/CarteBadge";
+
+/** Badge « Président d'équipe » (entrée gratuite) : son QR code mène à /admin/badge/<jeton>. */
+const jetonBadge = (lu: string) => /\/admin\/badge\/([A-Za-z0-9_-]{12,64})/.exec(lu.trim())?.[1] ?? null;
 
 const TZ = "Africa/Abidjan";
 const fcfa = (n: number) => `${n.toLocaleString("fr-FR")} FCFA`;
@@ -27,6 +32,7 @@ export function Scanner() {
   const ignore = useRef({ code: "", jusqua: 0 });
   const [camera, setCamera] = useState<Camera>("arret");
   const [resultat, setResultat] = useState<ResultatControle | null>(null);
+  const [badge, setBadge] = useState<ResultatBadge | null>(null);
   const [saisie, setSaisie] = useState("");
   const [confirmerAnnulation, setConfirmerAnnulation] = useState(false);
   const [envoi, demarrer] = useTransition();
@@ -42,6 +48,17 @@ export function Scanner() {
   const controler = useCallback(
     (code: string) => {
       enPause.current = true;
+      const jeton = jetonBadge(code);
+      if (jeton) {
+        demarrer(async () => {
+          const r = await verifierBadge(jeton);
+          setBadge(r);
+          try {
+            navigator.vibrate?.(r.valide ? 80 : [60, 60, 60]);
+          } catch {}
+        });
+        return;
+      }
       demarrer(async () => afficher(await chercherBillet(code)));
     },
     [afficher],
@@ -103,6 +120,7 @@ export function Scanner() {
 
   const suivant = () => {
     setResultat(null);
+    setBadge(null);
     setSaisie("");
     // Le billet qu'on vient de traiter est souvent encore devant la caméra : on l'ignore un instant.
     ignore.current = { code: dernier.current, jusqua: Date.now() + 4000 };
@@ -123,7 +141,7 @@ export function Scanner() {
     <div className="scan">
       {/* La zone caméra reste en place pendant l'affichage du résultat (masquée) : la caméra
           ne s'éteint pas et « Scanner le suivant » reprend aussitôt. */}
-      <div className="scan-zone" hidden={!!resultat}>
+      <div className="scan-zone" hidden={!!resultat || !!badge}>
           <div className={`scan-video${camera === "active" ? " on" : ""}`}>
             <video ref={video} playsInline muted autoPlay />
             <canvas ref={toile} hidden />
@@ -135,7 +153,7 @@ export function Scanner() {
                 ) : camera === "absente" ? (
                   <p>Caméra indisponible sur cet appareil. Tapez la référence du billet ci-dessous.</p>
                 ) : (
-                  <p>Pointez la caméra vers le QR code du billet.</p>
+                  <p>Pointez la caméra vers le QR code du billet ou du badge Président d&apos;équipe.</p>
                 )}
                 <button type="button" className="btn gold" onClick={lancerCamera} disabled={camera === "demarrage"}>
                   {camera === "demarrage" ? "Ouverture…" : "Ouvrir la caméra"}
@@ -156,6 +174,8 @@ export function Scanner() {
           </form>
           {camera === "active" && <button type="button" className="btn line sm" onClick={arreterCamera}>Fermer la caméra</button>}
       </div>
+
+      {badge && <CarteBadge key={badge.badge?.jeton ?? badge.erreur} resultat={badge} suivant={suivant} />}
 
       {resultat && (
         <Resultat
